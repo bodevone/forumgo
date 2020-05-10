@@ -4,12 +4,19 @@ import (
 	"database/sql"
 	"html/template"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 // IndexHandler handles index request
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
 	isLoggedIn, user := checkCookie(w, r)
 	t, err := template.New("index.html").ParseFiles("templates/index.html")
 	checkInternalServerError(err, w)
@@ -149,15 +156,16 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	var profileData ProfileData
 	profileData.ProfileUser = user
 
-	if user.Avatar == 1 {
-		profileData.Avatar1 = true
-	} else if user.Avatar == 2 {
-		profileData.Avatar2 = true
-	} else {
-		profileData.Avatar3 = true
-	}
-
 	if isLoggedIn {
+
+		if user.Avatar == 1 {
+			profileData.Avatar1 = true
+		} else if user.Avatar == 2 {
+			profileData.Avatar2 = true
+		} else {
+			profileData.Avatar3 = true
+		}
+
 		t, err := template.New("profile.html").ParseFiles("templates/profile.html")
 		checkInternalServerError(err, w)
 		err = t.Execute(w, profileData)
@@ -165,5 +173,57 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, "/login", 301)
 	}
+
+}
+
+// UserHandler handles public profile of user
+func UserHandler(w http.ResponseWriter, r *http.Request) {
+	parameters := strings.Split(r.URL.Path, "/")
+	param := ""
+	if len(parameters) == 3 && parameters[2] != "" {
+		param = parameters[2]
+	} else {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
+	userID, err := strconv.Atoi(param)
+
+	if err != nil {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
+	var selectedUser User
+	err = db.QueryRow("SELECT email, username, avatar FROM users WHERE id=?",
+		userID).Scan(&selectedUser.Email, &selectedUser.Username, &selectedUser.Avatar)
+
+	if err != nil {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
+	var profileData ProfileData
+	profileData.ProfileUser = selectedUser
+
+	if selectedUser.Avatar == 1 {
+		profileData.Avatar1 = true
+	} else if selectedUser.Avatar == 2 {
+		profileData.Avatar2 = true
+	} else {
+		profileData.Avatar3 = true
+	}
+
+	isLoggedIn, user := checkCookie(w, r)
+
+	var userData UserData
+	userData.LoggedIn = isLoggedIn
+	userData.ProfData = profileData
+	userData.ProfileUser = user
+
+	t, err := template.New("user.html").ParseFiles("templates/user.html")
+	checkInternalServerError(err, w)
+	err = t.Execute(w, userData)
+	checkInternalServerError(err, w)
 
 }

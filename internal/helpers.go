@@ -24,6 +24,13 @@ type ProfileData struct {
 	Avatar3     bool
 }
 
+// UserData stores data for profile handler
+type UserData struct {
+	LoggedIn    bool
+	ProfileUser User
+	ProfData    ProfileData
+}
+
 // InitDb starts database
 func InitDb() {
 	db, err = sql.Open("sqlite3", "db.sqlite3")
@@ -60,8 +67,8 @@ func checkCookie(w http.ResponseWriter, r *http.Request) (bool, User) {
 
 	sessionToken := c.Value
 
-	err = db.QueryRow("SELECT email, username, avatar FROM users WHERE session=?",
-		sessionToken).Scan(&user.Email, &user.Username, &user.Avatar)
+	err = db.QueryRow("SELECT id, email, username, avatar FROM users WHERE session=?",
+		sessionToken).Scan(&user.ID, &user.Email, &user.Username, &user.Avatar)
 
 	// checkInternalServerError(err, w)
 	if err != nil {
