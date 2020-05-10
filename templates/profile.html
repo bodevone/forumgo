@@ -31,11 +31,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="mx-3" role="img" viewBox="0 0 24 24" focusable="false"><title>Search</title><circle cx="10.5" cy="10.5" r="7.5"></circle><path d="M21 21l-5.2-5.2"></path></svg>
                 </a>
 
-                {{if .}}
-                Hello, <a class="p-2 text-dark" href="/profile">{{.Username}}</a>
-                {{else}}
-                <a class="btn btn-sm btn-outline-secondary" href="/login">Login</a>
-                {{end}}
+                Hello, <a class="p-2 text-dark" href="/profile">{{.ProfileUser.Username}}</a>
 
             </div>
             </div>
@@ -44,10 +40,27 @@
 
         <div class="text-center fullscreen">
                 <h1 class="h3 mb-3 text-top">Profile info</h1>
-                <img src="/statics/images/profile.png" class="img-fluid profile" alt="Responsive image">
-                <h3>{{.Username}}</h3>
 
-                <p>Email address: {{.Email}}</p>
+
+                {{if .Avatar1}}
+                <img src="/statics/images/profile1.png" class="img-fluid profile" alt="Responsive image">
+                {{end}}
+
+                {{if .Avatar2}}
+                <img src="/statics/images/profile2.png" class="img-fluid profile" alt="Responsive image">
+
+                {{end}}
+
+                {{if .Avatar3}}
+                <img src="/statics/images/profile3.png" class="img-fluid profile" alt="Responsive image">
+                {{end}}
+                <h3>@{{.ProfileUser.Username}}</h3>
+
+                <p>{{.ProfileUser.Email}}</p>
+
+
+                <h1 class="h3 mb-3 text-top">My Posts</h1>
+
 
                 <a class="btn btn-sm btn-outline-danger" href="/logout">Logout</a>
 

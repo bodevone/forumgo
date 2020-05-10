@@ -117,7 +117,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		checkInternalServerError(err, w)
 		// insert to database
-		_, err = db.Exec(`INSERT INTO users(email, password, username, avatar) VALUES(?, ?, ?)`,
+		_, err = db.Exec(`INSERT INTO users(email, password, username, avatar) VALUES(?, ?, ?, ?)`,
 			email, hashedPassword, username, avatar)
 		checkInternalServerError(err, w)
 
@@ -146,10 +146,21 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	isLoggedIn, user := checkCookie(w, r)
 
+	var profileData ProfileData
+	profileData.ProfileUser = user
+
+	if user.Avatar == 1 {
+		profileData.Avatar1 = true
+	} else if user.Avatar == 2 {
+		profileData.Avatar2 = true
+	} else {
+		profileData.Avatar3 = true
+	}
+
 	if isLoggedIn {
 		t, err := template.New("profile.html").ParseFiles("templates/profile.html")
 		checkInternalServerError(err, w)
-		err = t.Execute(w, user)
+		err = t.Execute(w, profileData)
 		checkInternalServerError(err, w)
 	} else {
 		http.Redirect(w, r, "/login", 301)
