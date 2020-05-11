@@ -19,7 +19,7 @@
 </head>
 <body>
 
-    <div class="container">
+    <div class="container fullscreen">
         <header class="blog-header py-3">
             <div class="row flex-nowrap justify-content-between align-items-center">
             <div class="col-4">
@@ -30,22 +30,37 @@
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="mx-3" role="img" viewBox="0 0 24 24" focusable="false"><title>Search</title><circle cx="10.5" cy="10.5" r="7.5"></circle><path d="M21 21l-5.2-5.2"></path></svg>
                 </a>
 
+                {{if .LoggedIn}}
+                Hello, <a class="p-2 text-dark" href="/profile">{{.IndexUser.Username}}</a>
+                {{else}}
+                <a class="btn btn-sm btn-outline-secondary" href="/login">Login</a>
+                {{end}}
+
             </div>
             </div>
         </header>
 
+
+        <div class="nav-scroller py-1 mb-2">
+            <nav class="nav d-flex">
+              {{range $index, $category := .Categories}}
+              <a class="p-2 text-muted" href="/category/{{$category.ID}}">{{$category.Name}}</a>              
+              {{end}}
+            </nav>
+        </div>
+
         <div class="posts">
             <div class="row mb-2">
-                {{range $index, $post := .}}
+                {{range $index, $post := .Posts}}
     
                 <div class="col-md-6">
                     <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
                         <div class="col p-4 d-flex flex-column position-static">
-                        <strong class="d-inline-block mb-2 text-primary">{{$post.ID}}</strong>
-                        <h3 class="mb-0">{{$post.Title}}</h3>
-                        <div class="mb-1 text-muted">{{$post.Timestamp}}</div>
-                        <!-- <p class="card-text mb-auto">This is a wider card with supporting text below as a natural lead-in to additional content.</p> -->
-                        <a href="#" class="stretched-link">Continue reading</a>
+                        <strong class="d-inline-block mb-2"><a href="/categories/{{$post.Category}}" style="text-decoration: none;">{{$post.CategoryName}}</a></strong>
+                        <a href="/post/{{$post.ID}}" style="text-decoration: none; color: black"><h3 class="mb-0">{{$post.Title}}</h3></a>
+                        <div class="mb-1 text-muted">{{$post.Timestamp}} by <a href="/users/{{$post.Author}}">{{$post.AuthorName}}</a></div>
+                        <p class="card-text mb-auto">{{$post.Content}}</p>
+                        <a href="/post/{{$post.ID}}">Continue reading</a>
                         </div>
                         <div class="col-auto d-none d-lg-block">
                         <svg class="bd-placeholder-img" width="200" height="250" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" focusable="false" role="img" aria-label="Placeholder: Thumbnail"><title>Placeholder</title><rect width="100%" height="100%" fill="#55595c"></rect><text x="50%" y="50%" fill="#eceeef" dy=".3em">Thumbnail</text></svg>
@@ -55,14 +70,6 @@
                 {{end}}
             </div>
         </div>
-
-
-
-        <nav class="blog-pagination text-center">
-            <a class="btn btn-outline-secondary" href="#">Prev</a>
-            <a class="btn btn-outline-primary" href="#">Next</a>
-        </nav>
-
 
     </div>
 

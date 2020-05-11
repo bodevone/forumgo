@@ -20,4 +20,5 @@ type IndexData struct {
 	IndexUser  User
 	LoggedIn   bool
 	Categories []Category
+	Posts      []Post
 }

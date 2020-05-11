@@ -26,8 +26,9 @@ func main() {
 	http.HandleFunc("/profile", internal.ProfileHandler)
 	http.HandleFunc("/user/", internal.UserHandler)
 	http.HandleFunc("/add-post", internal.AddPostHandler)
-	http.HandleFunc("/posts", internal.PostsHandler)
+	// http.HandleFunc("/posts", internal.PostsHandler)
 	http.HandleFunc("/post/", internal.PostHandler)
+	http.HandleFunc("/category/", internal.CategoryHandler)
 
 	http.Handle("/statics/",
 		http.StripPrefix("/statics/", http.FileServer(http.Dir("./statics"))),

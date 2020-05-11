@@ -23,9 +23,13 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 	isLoggedIn, user := checkCookie(w, r)
 
+	posts := getPosts(w)
+	posts = formatPosts(w, posts)
+
 	indexData.Categories = categories
 	indexData.IndexUser = user
 	indexData.LoggedIn = isLoggedIn
+	indexData.Posts = posts
 
 	t, err := template.New("index.html").ParseFiles("templates/index.html")
 	checkInternalServerError(err, w)
@@ -256,15 +260,6 @@ func AddPostHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func PostsHandler(w http.ResponseWriter, r *http.Request) {
-	posts := getPosts(w)
-
-	t, err := template.New("posts.html").ParseFiles("templates/posts.html")
-	checkInternalServerError(err, w)
-	err = t.Execute(w, posts)
-	checkInternalServerError(err, w)
-}
-
 // PostHandler handles one post iwth given id
 func PostHandler(w http.ResponseWriter, r *http.Request) {
 	parameters := strings.Split(r.URL.Path, "/")
@@ -287,6 +282,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	err = db.QueryRow("SELECT title, content, timestamp, author_id, category_id FROM posts WHERE id=?",
 		postID).Scan(&selectedPost.Title, &selectedPost.Content, &selectedPost.Timestamp, &selectedPost.Author, &selectedPost.Category)
 
+	post := formatPosts(w, []Post{selectedPost})[0]
+
 	if err != nil {
 		http.ServeFile(w, r, "templates/error.html")
 		return
@@ -294,7 +291,48 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 	t, err := template.New("post.html").ParseFiles("templates/post.html")
 	checkInternalServerError(err, w)
-	err = t.Execute(w, selectedPost)
+	err = t.Execute(w, post)
 	checkInternalServerError(err, w)
+}
 
+// CategoryHandler handles posts of given category
+func CategoryHandler(w http.ResponseWriter, r *http.Request) {
+	parameters := strings.Split(r.URL.Path, "/")
+	param := ""
+	if len(parameters) == 3 && parameters[2] != "" {
+		param = parameters[2]
+	} else {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
+	categoryID, err := strconv.Atoi(param)
+
+	if err != nil {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
+	posts, err := getPostsOfCategory(categoryID)
+
+	if err != nil {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
+	posts = formatPosts(w, posts)
+	categories := getCategories(w)
+	isLoggedIn, user := checkCookie(w, r)
+
+	var templateData IndexData
+
+	templateData.Categories = categories
+	templateData.Posts = posts
+	templateData.IndexUser = user
+	templateData.LoggedIn = isLoggedIn
+
+	t, err := template.New("category.html").ParseFiles("templates/category.html")
+	checkInternalServerError(err, w)
+	err = t.Execute(w, templateData)
+	checkInternalServerError(err, w)
 }

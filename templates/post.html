@@ -43,7 +43,8 @@
             <div class="row">
                 <div class="blog-post col">
                     <h2 class="blog-post-title">{{.Title}}</h2>
-                    <p class="blog-post-meta">{{.Timestamp}} by <a href="#">{{.Author}}</a></p>
+                    <span class="badge badge-pill badge-primary">{{.CategoryName}}</span>
+                    <p class="blog-post-meta">{{.Timestamp}} by <a href="/user/{{.Author}}">{{.AuthorName}}</a></p>
         
                     <p>{{.Content}}</p>
                 </div>

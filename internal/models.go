@@ -21,12 +21,14 @@ type User struct {
 
 // Post stores post data
 type Post struct {
-	ID        int64  `json:"id"`
-	Title     string `json:"email"`
-	Content   string `json:"username"`
-	Timestamp string `json:"timestamp"`
-	Author    int64  `json:"autor"`
-	Category  int64  `json:"category"`
+	ID           int64  `json:"id"`
+	Title        string `json:"email"`
+	Content      string `json:"username"`
+	Timestamp    string `json:"timestamp"`
+	Author       int64  `json:"autor"`
+	AuthorName   string `json:"author_name"`
+	Category     int64  `json:"category"`
+	CategoryName string `json:"category_name"`
 }
 
 // Category displays category of post

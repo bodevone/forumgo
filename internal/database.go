@@ -27,3 +27,16 @@ func getPosts(w http.ResponseWriter) []Post {
 	}
 	return posts
 }
+
+func getPostsOfCategory(category int) ([]Post, error) {
+
+	postRows, err1 := db.Query("SELECT * FROM posts WHERE category_id=?", category)
+
+	var posts []Post
+	var post Post
+	for postRows.Next() {
+		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author, &post.Category)
+		posts = append(posts, post)
+	}
+	return posts, err1
+}

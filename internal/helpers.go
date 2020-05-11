@@ -3,6 +3,7 @@ package internal
 import (
 	"database/sql"
 	"net/http"
+	"strings"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -119,4 +120,34 @@ func deleteCookie(w http.ResponseWriter) {
 		Value:  "",
 		MaxAge: -1,
 	})
+}
+
+func formatPosts(w http.ResponseWriter, posts []Post) []Post {
+
+	for i, post := range posts {
+		err = db.QueryRow("SELECT username FROM users WHERE id=?",
+			post.Author).Scan(&posts[i].AuthorName)
+		checkInternalServerError(err, w)
+		tempTimeArray := strings.Split(post.Timestamp, "T")
+		posts[i].Timestamp = tempTimeArray[0]
+
+		tempContentArray := strings.Split(post.Content, " ")
+		tempContentString := ""
+		if len(tempContentArray) > 20 {
+			tempContentArray = tempContentArray[:20]
+		}
+		for i, str := range tempContentArray {
+			if i != 0 {
+				tempContentString += " "
+			}
+			tempContentString += str
+		}
+		posts[i].Content = tempContentString
+
+		err = db.QueryRow("SELECT name FROM categories WHERE id=?",
+			post.Category).Scan(&posts[i].CategoryName)
+		checkInternalServerError(err, w)
+	}
+
+	return posts
 }
