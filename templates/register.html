@@ -35,8 +35,7 @@
                 <a class="text-muted" href="#" aria-label="Search">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="mx-3" role="img" viewBox="0 0 24 24" focusable="false"><title>Search</title><circle cx="10.5" cy="10.5" r="7.5"></circle><path d="M21 21l-5.2-5.2"></path></svg>
                 </a>
-                Hello, <a class="p-2 text-dark" href="/profile">{{.Username}}</a>
-
+                <a class="btn btn-sm btn-outline-secondary" href="/login">Login</a>
 
             </div>
             </div>
@@ -44,10 +43,10 @@
 
         <div class="text-center fullscreen">
             <form class="form-signin" action="/register" method="post" id="register-form">
-                <h1 class="h3 mb-3 font-weight-normal">Add New Post</h1>
+                <h1 class="h3 mb-3 font-weight-normal">Please Register</h1>
 
                 <!-- <label for="inputEmail" class="sr-only">Email address</label> -->
-                <input type="email" id="inputEmail" class="form-control" placeholder="Title" required="" autofocus="" name="title">
+                <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required="" autofocus="" name="email">
 
                 <!-- <label for="inputUsername" class="sr-only">Username</label> -->
                 <input type="text" id="inputUsername" class="form-control" placeholder="Username" required="" autofocus=""  name="username">

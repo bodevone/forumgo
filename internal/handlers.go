@@ -17,15 +17,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categoryRows, err := db.Query("SELECT * FROM categories")
-	checkInternalServerError(err, w)
-	var categories []Category
-	var category Category
-	for categoryRows.Next() {
-		err = categoryRows.Scan(&category.ID, &category.Name, &category.Color)
-		checkInternalServerError(err, w)
-		categories = append(categories, category)
-	}
+	categories := getCategories(w)
 
 	var indexData IndexData
 
@@ -72,7 +64,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", 301)
 	}
 
-	// // validate password
+	// validate password
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		errLogin = true
@@ -228,17 +220,34 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 
 // AddPostHandler handles new post addition
 func AddPostHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		isLoggedIn, user := checkCookie(w, r)
-		if !isLoggedIn {
-
-			t, err := template.New("add_post.html").ParseFiles("templates/add_post.html")
-			checkInternalServerError(err, w)
-			err = t.Execute(w, user)
-			checkInternalServerError(err, w)
-			return
-
-		}
+	isLoggedIn, user := checkCookie(w, r)
+	if !isLoggedIn {
+		http.Redirect(w, r, "/login", 301)
 	}
+
+	if r.Method != "POST" {
+
+		categories := getCategories(w)
+
+		var templateData IndexData
+		templateData.Categories = categories
+		templateData.IndexUser = user
+		templateData.LoggedIn = isLoggedIn
+
+		t, err := template.New("add_post.html").ParseFiles("templates/add_post.html")
+		checkInternalServerError(err, w)
+		err = t.Execute(w, templateData)
+		checkInternalServerError(err, w)
+		return
+
+	}
+
+	// // grab post info
+	// title := r.FormValue("title")
+	// content := r.FormValue("content")
+	// category := r.FormValue("category")
+
+	// _, err = db.Exec(`INSERT INTO posts(email, password, username, avatar) VALUES(?, ?, ?, ?)`,
+	// email, hashedPassword, username, avatar)
 
 }

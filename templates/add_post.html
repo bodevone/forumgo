@@ -11,17 +11,13 @@
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="/statics/styles/index.css">
-    <link rel="stylesheet" href="/statics/styles/login.css">
+    <link rel="stylesheet" href="/statics/styles/add_post.css">
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <meta name="theme-color" content="#563d7c">
 
     <!-- Custom styles for this template -->
     <link href="https://fonts.googleapis.com/css?family=Playfair+Display:700,900" rel="stylesheet">
-
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
 </head>
 <body>
@@ -35,45 +31,39 @@
                 <a class="text-muted" href="#" aria-label="Search">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="mx-3" role="img" viewBox="0 0 24 24" focusable="false"><title>Search</title><circle cx="10.5" cy="10.5" r="7.5"></circle><path d="M21 21l-5.2-5.2"></path></svg>
                 </a>
-                <a class="btn btn-sm btn-outline-secondary" href="/login">Login</a>
+
+                Hello, <a class="p-2 text-dark" href="/profile">{{.IndexUser.Username}}</a>
+                
 
             </div>
             </div>
         </header>
 
-        <div class="text-center fullscreen">
-            <form class="form-signin" action="/register" method="post" id="register-form">
-                <h1 class="h3 mb-3 font-weight-normal">Please Register</h1>
+        <div class="fullscreen">
+          <div class="text-center">
+            <h1 class="add-title">Add New Post</h1>
+          </div>
+          <form class="form" action="/add-post" method="post" id="add-post-form">
+            <div class="form-group">
+              <label class="label-title" for="exampleFormControlInput1">Post Title</label>
+              <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="Title of the post" name="title">
+            </div>
+            <div class="form-group category">
+              <label class="label-title" for="exampleFormControlSelect1">Category</label>
+              <select class="form-control" id="exampleFormControlSelect1" name="category">
+                {{range $index, $category := .Categories}}
+                <option value="{{$category.ID}}">{{$category.Name}}</option>                
+                {{end}}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="label-title" for="postContent">Post Content</label>
+              <textarea class="form-control" id="postContent" rows="10" placeholder="Text of the post" name="content"></textarea>
+            </div>
+            <p class="error-text" id="errorText"></p>
 
-                <!-- <label for="inputEmail" class="sr-only">Email address</label> -->
-                <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required="" autofocus="" name="email">
-
-                <!-- <label for="inputUsername" class="sr-only">Username</label> -->
-                <input type="text" id="inputUsername" class="form-control" placeholder="Username" required="" autofocus=""  name="username">
-
-                <!-- <label for="inputPassword" class="sr-only">Password</label> -->
-                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required=""  name="password">
-
-                <!-- <label for="inputPasswordAgain" class="sr-only">Password Again</label> -->
-                <input type="password" id="inputPasswordAgain" class="form-control" placeholder="Password Again" required="" name="passwordAgain">
-
-                <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                  <label class="btn btn-secondary active">
-                    <input type="radio" name="avatar" id="option1" autocomplete="off" value="1" checked> Barack
-                  </label>
-                  <label class="btn btn-secondary">
-                    <input type="radio" name="avatar" id="option2" autocomplete="off" value="2"> Saitama
-                  </label>
-                  <label class="btn btn-secondary">
-                    <input type="radio" name="avatar" id="option3" autocomplete="off" value="3"> Pepe
-                  </label>
-                </div>
-
-                <p class="error-text" id="errorText">{{.}}</p>
-                
-                <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
-
-              </form>
+            <button class="btn btn-lg btn-primary btn-block" type="submit">Add Post</button>
+          </form>
         </div>
     </div>
 
@@ -82,22 +72,18 @@
 </footer>
 
 <script>
-    var registerForm = document.getElementById('register-form');
+    var addPostForm = document.getElementById('add-post-form');
+    var content = document.getElementById('postContent');
     var errorText = document.getElementById('errorText')
-    registerForm.onsubmit = function() {
-      if (this.elements["password"].value != this.elements['passwordAgain'].value) {
-        // alert("Password not match");
-        errorText.textContent = "Passwords do not match"
+
+    addPostForm.onsubmit = function() {
+
+      if (this.elements["title"].value.length < 3) {
+        errorText.textContent = "Title is too short"
         return false;
       }
-      if (this.elements['username'].value.length < 3 || this.elements['password'].value.length < 5) {
-        // alert('Username and password must has at least 6 characters');
-        errorText.textContent = "Username or Password is too short"
-        return false;
-      }
-      if (this.elements['username'].value == this.elements['password'].value) {
-        // alert('Username must different password')
-        errorText.textContent = "Password must be different from password"
+      if (content.value.length < 5) {
+        errorText.textContent = "Content is too short"
         return false;
       }
     }
