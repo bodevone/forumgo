@@ -18,3 +18,20 @@ type User struct {
 	Avatar       int    `json:"avatar"`
 	SessionToken string `json:"sessionToken"`
 }
+
+// Post stores post data
+type Post struct {
+	ID        int64  `json:"id"`
+	Title     string `json:"email"`
+	Content   string `json:"username"`
+	Timestamp string `json:"timestamp"`
+	Author    int64  `json:"autor"`
+	Category  int64  `json:"category"`
+}
+
+// Category displays category of post
+type Category struct {
+	ID    int64  `json:"id"`
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}

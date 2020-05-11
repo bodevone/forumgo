@@ -31,6 +31,13 @@ type UserData struct {
 	ProfData    ProfileData
 }
 
+// IndexData stores data for index page
+type IndexData struct {
+	IndexUser  User
+	LoggedIn   bool
+	Categories []Category
+}
+
 // InitDb starts database
 func InitDb() {
 	db, err = sql.Open("sqlite3", "db.sqlite3")
@@ -46,6 +53,32 @@ func InitDb() {
 
 	createUsers, _ := db.Prepare("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, email TEXT, username TEXT, password TEXT, avatar INTEGER, session TEXT)")
 	createUsers.Exec()
+
+	createCategories, _ := db.Prepare("CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, name TEXT, color TEXT)")
+	createCategories.Exec()
+
+	createPosts, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS posts (
+			id INTEGER PRIMARY KEY, 
+			title TEXT, content TEXT, 
+			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+			author_id INTEGER NOT NULL, 
+			category_id INTEGER NOT NULL, 
+			FOREIGN KEY(author_id) REFERENCES users(id), 
+			FOREIGN KEY(category_id) REFERENCES categories(id)
+		)
+	`)
+	createPosts.Exec()
+
+	// var categories = make(map[string]string)
+	// categories["Technology"] = "red"
+	// categories["Design"] = "blue"
+	// categories["Environment"] = "green"
+
+	// for category, color := range categories {
+	// 	_, err = db.Exec(`INSERT INTO categories(name, color) VALUES(?, ?)`, category, color)
+	// }
+
 }
 
 func checkInternalServerError(err error, w http.ResponseWriter) {

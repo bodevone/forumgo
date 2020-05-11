@@ -17,30 +17,28 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	categoryRows, err := db.Query("SELECT * FROM categories")
+	checkInternalServerError(err, w)
+	var categories []Category
+	var category Category
+	for categoryRows.Next() {
+		err = categoryRows.Scan(&category.ID, &category.Name, &category.Color)
+		checkInternalServerError(err, w)
+		categories = append(categories, category)
+	}
+
+	var indexData IndexData
+
 	isLoggedIn, user := checkCookie(w, r)
+
+	indexData.Categories = categories
+	indexData.IndexUser = user
+	indexData.LoggedIn = isLoggedIn
+
 	t, err := template.New("index.html").ParseFiles("templates/index.html")
 	checkInternalServerError(err, w)
-	if isLoggedIn {
-		err = t.Execute(w, user)
-	} else {
-		err = t.Execute(w, nil)
-	}
+	err = t.Execute(w, indexData)
 	checkInternalServerError(err, w)
-
-	// rows, err := db.Query("SELECT * FROM users")
-	// checkInternalServerError(err, w)
-	// var users []User
-	// var user User
-	// for rows.Next() {
-	// 	err = rows.Scan(&user.ID, &user.Email,
-	// 		&user.Username, &user.Password, &user.SessionToken)
-	// 	checkInternalServerError(err, w)
-	// 	users = append(users, user)
-	// }
-	// t, err := template.New("index.html").ParseFiles("templates/index.html")
-	// checkInternalServerError(err, w)
-	// err = t.Execute(w, users)
-	// checkInternalServerError(err, w)
 }
 
 // LoginHandler handles login request
@@ -133,8 +131,8 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", 301)
 
 	} else {
-		checkInternalServerError(err1, w)
-		checkInternalServerError(err2, w)
+		// checkInternalServerError(err1, w)
+		// checkInternalServerError(err2, w)
 
 		errRegister = true
 		http.Redirect(w, r, "/register", 301)
@@ -225,5 +223,22 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	checkInternalServerError(err, w)
 	err = t.Execute(w, userData)
 	checkInternalServerError(err, w)
+
+}
+
+// AddPostHandler handles new post addition
+func AddPostHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "POST" {
+		isLoggedIn, user := checkCookie(w, r)
+		if !isLoggedIn {
+
+			t, err := template.New("add_post.html").ParseFiles("templates/add_post.html")
+			checkInternalServerError(err, w)
+			err = t.Execute(w, user)
+			checkInternalServerError(err, w)
+			return
+
+		}
+	}
 
 }
