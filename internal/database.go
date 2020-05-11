@@ -14,3 +14,16 @@ func getCategories(w http.ResponseWriter) []Category {
 	}
 	return categories
 }
+
+func getPosts(w http.ResponseWriter) []Post {
+	postRows, err := db.Query("SELECT * FROM posts")
+	checkInternalServerError(err, w)
+	var posts []Post
+	var post Post
+	for postRows.Next() {
+		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author, &post.Category)
+		checkInternalServerError(err, w)
+		posts = append(posts, post)
+	}
+	return posts
+}

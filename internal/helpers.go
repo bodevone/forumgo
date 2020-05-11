@@ -38,7 +38,8 @@ func InitDb() {
 	createPosts, _ := db.Prepare(`
 		CREATE TABLE IF NOT EXISTS posts (
 			id INTEGER PRIMARY KEY, 
-			title TEXT, content TEXT, 
+			title TEXT, 
+			content TEXT, 
 			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
 			author_id INTEGER NOT NULL, 
 			category_id INTEGER NOT NULL, 

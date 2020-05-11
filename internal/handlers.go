@@ -243,11 +243,58 @@ func AddPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// // grab post info
-	// title := r.FormValue("title")
-	// content := r.FormValue("content")
-	// category := r.FormValue("category")
+	title := r.FormValue("title")
+	content := r.FormValue("content")
+	categoryID := r.FormValue("category")
 
-	// _, err = db.Exec(`INSERT INTO posts(email, password, username, avatar) VALUES(?, ?, ?, ?)`,
-	// email, hashedPassword, username, avatar)
+	_, err = db.Exec(`INSERT INTO posts(title, content, author_id, category_id) VALUES(?, ?, ?, ?)`,
+		title, content, user.ID, categoryID)
+
+	checkInternalServerError(err, w)
+
+	http.Redirect(w, r, "/", 301)
+
+}
+
+func PostsHandler(w http.ResponseWriter, r *http.Request) {
+	posts := getPosts(w)
+
+	t, err := template.New("posts.html").ParseFiles("templates/posts.html")
+	checkInternalServerError(err, w)
+	err = t.Execute(w, posts)
+	checkInternalServerError(err, w)
+}
+
+// PostHandler handles one post iwth given id
+func PostHandler(w http.ResponseWriter, r *http.Request) {
+	parameters := strings.Split(r.URL.Path, "/")
+	param := ""
+	if len(parameters) == 3 && parameters[2] != "" {
+		param = parameters[2]
+	} else {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
+	postID, err := strconv.Atoi(param)
+
+	if err != nil {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
+	var selectedPost Post
+	err = db.QueryRow("SELECT title, content, timestamp, author_id, category_id FROM posts WHERE id=?",
+		postID).Scan(&selectedPost.Title, &selectedPost.Content, &selectedPost.Timestamp, &selectedPost.Author, &selectedPost.Category)
+
+	if err != nil {
+		http.ServeFile(w, r, "templates/error.html")
+		return
+	}
+
+	t, err := template.New("post.html").ParseFiles("templates/post.html")
+	checkInternalServerError(err, w)
+	err = t.Execute(w, selectedPost)
+	checkInternalServerError(err, w)
 
 }
