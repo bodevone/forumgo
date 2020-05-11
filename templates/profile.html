@@ -38,7 +38,8 @@
         </header>
 
 
-        <div class="text-center fullscreen">
+        <div class="fullscreen">
+            <div class="text-center">
                 <h1 class="h3 mb-3 text-top">My Profile info</h1>
 
 
@@ -61,12 +62,32 @@
                 <a class="btn btn-sm btn-outline-success" href="/add-post">Add New Post</a>
                 <a class="btn btn-sm btn-outline-primary" href="/user/{{.ProfileUser.ID}}">Public Profile</a>
                 <a class="btn btn-sm btn-outline-danger" href="/logout">Logout</a>
-
-
-
-                <h1 class="h3 mb-3 text-top">My Posts</h1>
-
-
+            </div>
+            
+            <hr/>
+  
+            <div class="posts">
+                <div class="text-center">
+                    <h1 class="h3 mb-3 font-weight-normal">My Posts</h1>
+                </div>
+    
+                <div class="row">
+                    {{range $index, $post := .Posts}}
+        
+                    <div class="col">
+                        <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm position-relative">
+                            <div class="col p-4 d-flex flex-column position-static">
+                            <strong class="d-inline-block mb-2"><a href="/category/{{$post.Category}}" style="text-decoration: none;">{{$post.CategoryName}}</a></strong>
+                            <a href="/post/{{$post.ID}}" style="text-decoration: none; color: black"><h3 class="mb-0">{{$post.Title}}</h3></a>
+                            <div class="mb-1 text-muted">{{$post.Timestamp}}</div>
+                            </div>
+                            <div class="col-auto d-none d-lg-block">
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            </div>
 
         </div>
     </div>

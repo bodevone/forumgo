@@ -40,3 +40,28 @@ func getPostsOfCategory(category int) ([]Post, error) {
 	}
 	return posts, err1
 }
+
+func getPostsOfUser(w http.ResponseWriter, user int) []Post {
+
+	postRows, err := db.Query("SELECT * FROM posts WHERE author_id=?", user)
+	checkInternalServerError(err, w)
+
+	var posts []Post
+	var post Post
+	for postRows.Next() {
+		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author, &post.Category)
+		posts = append(posts, post)
+		checkInternalServerError(err, w)
+	}
+	return posts
+}
+
+func getCategoryName(w http.ResponseWriter, categoryID int) string {
+	categoryName := ""
+	err = db.QueryRow("SELECT name FROM categories WHERE id=?",
+		categoryID).Scan(&categoryName)
+
+	checkInternalServerError(err, w)
+
+	return categoryName
+}

@@ -50,15 +50,18 @@
         </div>
 
         <div class="posts">
+            <div class="text-center">
+                <h1 class="h3 mb-3 font-weight-normal">{{.Category}}</h1>
+            </div>
             <div class="row mb-2">
                 {{range $index, $post := .Posts}}
     
                 <div class="col-md-6">
                     <div class="row no-gutters border rounded overflow-hidden flex-md-row mb-4 shadow-sm h-md-250 position-relative">
                         <div class="col p-4 d-flex flex-column position-static">
-                        <strong class="d-inline-block mb-2"><a href="/categories/{{$post.Category}}" style="text-decoration: none;">{{$post.CategoryName}}</a></strong>
+                        <strong class="d-inline-block mb-2"><a href="/category/{{$post.Category}}" style="text-decoration: none;">{{$post.CategoryName}}</a></strong>
                         <a href="/post/{{$post.ID}}" style="text-decoration: none; color: black"><h3 class="mb-0">{{$post.Title}}</h3></a>
-                        <div class="mb-1 text-muted">{{$post.Timestamp}} by <a href="/users/{{$post.Author}}">{{$post.AuthorName}}</a></div>
+                        <div class="mb-1 text-muted">{{$post.Timestamp}} by <a href="/user/{{$post.Author}}">{{$post.AuthorName}}</a></div>
                         <p class="card-text mb-auto">{{$post.Content}}</p>
                         <a href="/post/{{$post.ID}}">Continue reading</a>
                         </div>

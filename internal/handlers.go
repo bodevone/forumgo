@@ -160,6 +160,11 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 			profileData.Avatar3 = true
 		}
 
+		posts := getPostsOfUser(w, int(user.ID))
+		posts = formatPosts(w, posts)
+
+		profileData.Posts = posts
+
 		t, err := template.New("profile.html").ParseFiles("templates/profile.html")
 		checkInternalServerError(err, w)
 		err = t.Execute(w, profileData)
@@ -210,10 +215,14 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 
 	isLoggedIn, user := checkCookie(w, r)
 
+	posts := getPostsOfUser(w, userID)
+	posts = formatPosts(w, posts)
+
 	var userData UserData
 	userData.LoggedIn = isLoggedIn
 	userData.ProfData = profileData
 	userData.ProfileUser = user
+	userData.ProfPosts = posts
 
 	t, err := template.New("user.html").ParseFiles("templates/user.html")
 	checkInternalServerError(err, w)
@@ -314,6 +323,7 @@ func CategoryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	posts, err := getPostsOfCategory(categoryID)
+	category := getCategoryName(w, categoryID)
 
 	if err != nil {
 		http.ServeFile(w, r, "templates/error.html")
@@ -330,6 +340,7 @@ func CategoryHandler(w http.ResponseWriter, r *http.Request) {
 	templateData.Posts = posts
 	templateData.IndexUser = user
 	templateData.LoggedIn = isLoggedIn
+	templateData.Category = category
 
 	t, err := template.New("category.html").ParseFiles("templates/category.html")
 	checkInternalServerError(err, w)
