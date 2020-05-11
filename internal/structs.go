@@ -1,6 +1,6 @@
 package internal
 
-// ProfileData stores data for profile handler
+// ProfileData stores data for profile page
 type ProfileData struct {
 	ProfileUser User
 	Avatar1     bool
@@ -9,7 +9,7 @@ type ProfileData struct {
 	Posts       []Post
 }
 
-// UserData stores data for profile handler
+// UserData stores data for user page
 type UserData struct {
 	LoggedIn    bool
 	ProfileUser User
@@ -24,4 +24,12 @@ type IndexData struct {
 	Categories []Category
 	Posts      []Post
 	Category   string
+}
+
+// PostData stores data for post page
+type PostData struct {
+	LoggedIn bool
+	UserData User
+	CurrPost Post
+	Comments []Comment
 }

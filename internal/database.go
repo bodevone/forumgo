@@ -65,3 +65,19 @@ func getCategoryName(w http.ResponseWriter, categoryID int) string {
 
 	return categoryName
 }
+
+func getComments(w http.ResponseWriter, postID int) []Comment {
+
+	commentRows, err := db.Query("SELECT * FROM comments WHERE post_id=?", postID)
+
+	checkInternalServerError(err, w)
+
+	var comments []Comment
+	var comment Comment
+	for commentRows.Next() {
+		err = commentRows.Scan(&comment.Text, &comment.Timestamp, &comment.Author, &comment.Post)
+		comments = append(comments, comment)
+		checkInternalServerError(err, w)
+	}
+	return comments
+}

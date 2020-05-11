@@ -271,6 +271,7 @@ func AddPostHandler(w http.ResponseWriter, r *http.Request) {
 
 // PostHandler handles one post iwth given id
 func PostHandler(w http.ResponseWriter, r *http.Request) {
+
 	parameters := strings.Split(r.URL.Path, "/")
 	param := ""
 	if len(parameters) == 3 && parameters[2] != "" {
@@ -288,20 +289,45 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var selectedPost Post
-	err = db.QueryRow("SELECT title, content, timestamp, author_id, category_id FROM posts WHERE id=?",
-		postID).Scan(&selectedPost.Title, &selectedPost.Content, &selectedPost.Timestamp, &selectedPost.Author, &selectedPost.Category)
-
-	post := formatPosts(w, []Post{selectedPost})[0]
+	err = db.QueryRow("SELECT id, title, content, timestamp, author_id, category_id FROM posts WHERE id=?",
+		postID).Scan(&selectedPost.ID, &selectedPost.Title, &selectedPost.Content, &selectedPost.Timestamp, &selectedPost.Author, &selectedPost.Category)
 
 	if err != nil {
 		http.ServeFile(w, r, "templates/error.html")
 		return
 	}
 
-	t, err := template.New("post.html").ParseFiles("templates/post.html")
+	post := formatPosts(w, []Post{selectedPost})[0]
+
+	isLoggedIn, user := checkCookie(w, r)
+
+	comments := getComments(w, postID)
+	comments = formatComments(w, comments)
+
+	var postData PostData
+
+	postData.CurrPost = post
+	postData.LoggedIn = isLoggedIn
+	postData.UserData = user
+	postData.Comments = comments
+
+	if r.Method != "POST" {
+		t, err := template.New("post.html").ParseFiles("templates/post.html")
+		checkInternalServerError(err, w)
+		err = t.Execute(w, postData)
+		checkInternalServerError(err, w)
+		return
+	}
+
+	comment := r.FormValue("comment")
+
+	_, err = db.Exec(`INSERT INTO comments(text, author_id, post_id) VALUES(?, ?, ?)`,
+		comment, user.ID, postID)
+
 	checkInternalServerError(err, w)
-	err = t.Execute(w, post)
-	checkInternalServerError(err, w)
+	postString := strconv.Itoa(postID)
+	http.Redirect(w, r, "/post/"+postString, 301)
+
 }
 
 // CategoryHandler handles posts of given category

@@ -37,3 +37,12 @@ type Category struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
 }
+
+// Comment displays comment of user in post
+type Comment struct {
+	Text       string `json:"name"`
+	Timestamp  string `json:"timestamp"`
+	Author     int64  `json:"autor"`
+	AuthorName string `json:"author_name"`
+	Post       int64  `json:"post"`
+}

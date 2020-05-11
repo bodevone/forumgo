@@ -33,23 +33,61 @@
                 <a class="text-muted" href="#" aria-label="Search">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="mx-3" role="img" viewBox="0 0 24 24" focusable="false"><title>Search</title><circle cx="10.5" cy="10.5" r="7.5"></circle><path d="M21 21l-5.2-5.2"></path></svg>
                 </a>
+
+                {{if .LoggedIn}}
+                Hello, <a class="p-2 text-dark" href="/profile">{{.UserData.Username}}</a>
+                {{else}}
+                <a class="btn btn-sm btn-outline-secondary" href="/login">Login</a>
+                {{end}}
             </div>
             </div>
         </header>
     </div>
 
     <div>
-        <div class="container">
+        <div class="container fullscreen">
             <div class="row">
                 <div class="blog-post col">
-                    <h2 class="blog-post-title">{{.Title}}</h2>
-                    <span class="badge badge-pill badge-primary">{{.CategoryName}}</span>
-                    <p class="blog-post-meta">{{.Timestamp}} by <a href="/user/{{.Author}}">{{.AuthorName}}</a></p>
+                    <h2 class="blog-post-title">{{.CurrPost.Title}}</h2>
+                    <span class="badge badge-pill badge-primary">{{.CurrPost.CategoryName}}</span>
+                    <p class="blog-post-meta">{{.CurrPost.Timestamp}} by <a href="/user/{{.CurrPost.Author}}">{{.CurrPost.AuthorName}}</a></p>
         
-                    <p>{{.Content}}</p>
+                    <p>{{.CurrPost.Content}}</p>
                 </div>
-            
             </div>
+
+            <hr/>
+
+            <div>
+                <h1 class="h3 mb-3 text-top">Comments</h1>
+                <div class="container"></div>
+                    {{range $index, $comment := .Comments}}
+                    <div class="comment">
+                        <p class="author">{{$comment.AuthorName}}</p>
+                        <p class="time">{{$comment.Timestamp}}</p>
+                        <p>{{$comment.Text}}</p>
+                    </div>
+                    {{end}}
+            </div>
+
+
+            {{if .LoggedIn}}
+            <hr/>
+
+            <div class="my-comment">
+                <form class="form" action="/post/{{.CurrPost.ID}}" method="post" id="add-comment-form">
+                    <div class="form-group">
+                    <h1 class="h3 mb-3 text-top">Write your comment</h1>
+
+                    <textarea class="form-control" id="comment" rows="10" placeholder="Text of the comment" name="comment"></textarea>
+                    </div>
+                    <p class="error-text" id="errorText"></p>
+
+                    <button class="btn btn-lg btn-primary btn-block" type="submit">Add Comment</button>
+                </form>
+            </div>
+            {{end}}
+            
         </div>
 
     </div>
@@ -58,6 +96,24 @@
     <p>Built by bodevone © 2020</p>
 </footer>
 
+<script>
+    var addCommentForm = document.getElementById('add-comment-form');
+    var comment = document.getElementById('comment');
+    var errorText = document.getElementById('errorText')
+
+    if (addCommentForm) {
+
+        addCommentForm.onsubmit = function() {
+
+            if (comment.value.length < 1) {
+                errorText.textContent = "Comment is empty!"
+                return false;
+            }
+        }
+
+    }
+
+</script>
 
 </body>
 </html>

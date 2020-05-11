@@ -50,6 +50,18 @@ func InitDb() {
 	`)
 	createPosts.Exec()
 
+	createComments, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS comments (
+			text TEXT, 
+			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+			author_id INTEGER NOT NULL, 
+			post_id INTEGER NOT NULL, 
+			FOREIGN KEY(author_id) REFERENCES users(id), 
+			FOREIGN KEY(post_id) REFERENCES posts(id)
+		)
+	`)
+	createComments.Exec()
+
 	// var categories = make(map[string]string)
 	// categories["Technology"] = "red"
 	// categories["Design"] = "blue"
@@ -150,4 +162,19 @@ func formatPosts(w http.ResponseWriter, posts []Post) []Post {
 	}
 
 	return posts
+}
+
+func formatComments(w http.ResponseWriter, comments []Comment) []Comment {
+
+	for i, comment := range comments {
+		err = db.QueryRow("SELECT username FROM users WHERE id=?",
+			comment.Author).Scan(&comments[i].AuthorName)
+		checkInternalServerError(err, w)
+
+		tempTimeArray := strings.Split(comment.Timestamp, "T")
+		comments[i].Timestamp = tempTimeArray[0]
+
+	}
+
+	return comments
 }
