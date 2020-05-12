@@ -10,6 +10,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var params []string
+
 // IndexHandler handles index request
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -273,15 +275,26 @@ func AddPostHandler(w http.ResponseWriter, r *http.Request) {
 func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 	parameters := strings.Split(r.URL.Path, "/")
-	param := ""
+	postString := ""
+	liked := false
+	disliked := false
+
 	if len(parameters) == 3 && parameters[2] != "" {
-		param = parameters[2]
+		postString = parameters[2]
+	} else if len(parameters) == 4 && parameters[2] != "" && (parameters[3] == "like" || parameters[3] == "dislike") {
+		postString = parameters[2]
+		if parameters[3] == "like" {
+			liked = true
+		}
+		if parameters[3] == "dislike" {
+			disliked = true
+		}
 	} else {
 		http.ServeFile(w, r, "templates/error.html")
 		return
 	}
 
-	postID, err := strconv.Atoi(param)
+	postID, err := strconv.Atoi(postString)
 
 	if err != nil {
 		http.ServeFile(w, r, "templates/error.html")
@@ -297,9 +310,37 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post := formatPosts(w, []Post{selectedPost})[0]
-
 	isLoggedIn, user := checkCookie(w, r)
+
+	if r.Method != "POST" && (liked || disliked) {
+		if isLoggedIn {
+
+			if liked {
+				addLike(w, postID, int(user.ID))
+			}
+			if disliked {
+				addDislike(w, postID, int(user.ID))
+			}
+
+			http.Redirect(w, r, "/post/"+postString, 301)
+
+		} else {
+			http.Redirect(w, r, "/login", 301)
+		}
+	}
+
+	likesCount := getLikes(w, postID)
+	dislikesCount := getDislikes(w, postID)
+
+	userLiked := false
+	userDisliked := false
+
+	if isLoggedIn {
+		userLiked = getUserLike(w, postID, int(user.ID))
+		userDisliked = getUserDislike(w, postID, int(user.ID))
+	}
+
+	post := formatPost(w, selectedPost)
 
 	comments := getComments(w, postID)
 	comments = formatComments(w, comments)
@@ -310,6 +351,10 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	postData.LoggedIn = isLoggedIn
 	postData.UserData = user
 	postData.Comments = comments
+	postData.Likes = likesCount
+	postData.Dislikes = dislikesCount
+	postData.UserLiked = userLiked
+	postData.UserDisliked = userDisliked
 
 	if r.Method != "POST" {
 		t, err := template.New("post.html").ParseFiles("templates/post.html")
@@ -321,12 +366,15 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 	comment := r.FormValue("comment")
 
-	_, err = db.Exec(`INSERT INTO comments(text, author_id, post_id) VALUES(?, ?, ?)`,
-		comment, user.ID, postID)
+	if comment != "" {
 
-	checkInternalServerError(err, w)
-	postString := strconv.Itoa(postID)
-	http.Redirect(w, r, "/post/"+postString, 301)
+		_, err = db.Exec(`INSERT INTO comments(text, author_id, post_id) VALUES(?, ?, ?)`,
+			comment, user.ID, postID)
+
+		checkInternalServerError(err, w)
+		http.Redirect(w, r, "/post/"+postString, 301)
+
+	}
 
 }
 

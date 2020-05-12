@@ -49,10 +49,43 @@
             <div class="row">
                 <div class="blog-post col">
                     <h2 class="blog-post-title">{{.CurrPost.Title}}</h2>
-                    <span class="badge badge-pill badge-primary">{{.CurrPost.CategoryName}}</span>
+                    <a href="/category/{{.CurrPost.Category}}"><span class="badge badge-pill badge-primary">{{.CurrPost.CategoryName}}</span></a>
                     <p class="blog-post-meta">{{.CurrPost.Timestamp}} by <a href="/user/{{.CurrPost.Author}}">{{.CurrPost.AuthorName}}</a></p>
-        
-                    <p>{{.CurrPost.Content}}</p>
+                    <p class="blog-post-likes">
+                        {{if .UserLiked}}
+                        <div class="one-png liked">
+                            <a href="/post/{{.CurrPost.ID}}/like">
+                                <img class="png" src="/statics/images/like.png" alt="Like button">
+                                {{.Likes}}
+                            </a>
+                        </div>
+                        {{else}}
+                        <div class="one-png">
+                            <a href="/post/{{.CurrPost.ID}}/like">
+                                <img class="png" src="/statics/images/like.png" alt="Like button">
+                                {{.Likes}}
+                            </a>
+                        </div>
+                        {{end}}
+
+                        {{if .UserDisliked}}
+                        <div class="one-png disliked">
+                            <a href="/post/{{.CurrPost.ID}}/dislike">
+                                <img class="png" src="/statics/images/dislike.png" alt="Dislike button">
+                                {{.Dislikes}}
+                            </a>
+                        </div>
+                        {{else}}
+                        <div class="one-png">
+                            <a href="/post/{{.CurrPost.ID}}/dislike">
+                                <img class="png" src="/statics/images/dislike.png" alt="Dislike button">
+                                {{.Dislikes}}
+                            </a>
+                        </div>
+                        {{end}}
+                    </p>
+
+                    <p class="content">{{.CurrPost.Content}}</p>
                 </div>
             </div>
 

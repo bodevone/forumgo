@@ -46,3 +46,15 @@ type Comment struct {
 	AuthorName string `json:"author_name"`
 	Post       int64  `json:"post"`
 }
+
+// Like on post from user
+type Like struct {
+	UserID int64 `json:"userid"`
+	PostID int64 `json:"postid"`
+}
+
+// Dislike on post from user
+type Dislike struct {
+	UserID int64 `json:"userid"`
+	PostID int64 `json:"postid"`
+}

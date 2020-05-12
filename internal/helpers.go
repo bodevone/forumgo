@@ -17,62 +17,6 @@ var (
 	authenticated = false
 )
 
-// InitDb starts database
-func InitDb() {
-	db, err = sql.Open("sqlite3", "db.sqlite3")
-	if err != nil {
-		panic(err)
-	}
-	// defer db.Close()
-	// test connection
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	createUsers, _ := db.Prepare("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, email TEXT, username TEXT, password TEXT, avatar INTEGER, session TEXT)")
-	createUsers.Exec()
-
-	createCategories, _ := db.Prepare("CREATE TABLE IF NOT EXISTS categories (id INTEGER PRIMARY KEY, name TEXT, color TEXT)")
-	createCategories.Exec()
-
-	createPosts, _ := db.Prepare(`
-		CREATE TABLE IF NOT EXISTS posts (
-			id INTEGER PRIMARY KEY, 
-			title TEXT, 
-			content TEXT, 
-			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-			author_id INTEGER NOT NULL, 
-			category_id INTEGER NOT NULL, 
-			FOREIGN KEY(author_id) REFERENCES users(id), 
-			FOREIGN KEY(category_id) REFERENCES categories(id)
-		)
-	`)
-	createPosts.Exec()
-
-	createComments, _ := db.Prepare(`
-		CREATE TABLE IF NOT EXISTS comments (
-			text TEXT, 
-			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-			author_id INTEGER NOT NULL, 
-			post_id INTEGER NOT NULL, 
-			FOREIGN KEY(author_id) REFERENCES users(id), 
-			FOREIGN KEY(post_id) REFERENCES posts(id)
-		)
-	`)
-	createComments.Exec()
-
-	// var categories = make(map[string]string)
-	// categories["Technology"] = "red"
-	// categories["Design"] = "blue"
-	// categories["Environment"] = "green"
-
-	// for category, color := range categories {
-	// 	_, err = db.Exec(`INSERT INTO categories(name, color) VALUES(?, ?)`, category, color)
-	// }
-
-}
-
 func checkInternalServerError(err error, w http.ResponseWriter) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -162,6 +106,21 @@ func formatPosts(w http.ResponseWriter, posts []Post) []Post {
 	}
 
 	return posts
+}
+
+func formatPost(w http.ResponseWriter, post Post) Post {
+
+	err = db.QueryRow("SELECT username FROM users WHERE id=?",
+		post.Author).Scan(&post.AuthorName)
+	checkInternalServerError(err, w)
+	tempTimeArray := strings.Split(post.Timestamp, "T")
+	post.Timestamp = tempTimeArray[0]
+
+	err = db.QueryRow("SELECT name FROM categories WHERE id=?",
+		post.Category).Scan(&post.CategoryName)
+	checkInternalServerError(err, w)
+
+	return post
 }
 
 func formatComments(w http.ResponseWriter, comments []Comment) []Comment {

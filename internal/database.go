@@ -1,6 +1,100 @@
 package internal
 
-import "net/http"
+import (
+	"database/sql"
+	"net/http"
+)
+
+// InitDb starts database
+func InitDb() {
+	db, err = sql.Open("sqlite3", "db.sqlite3")
+	if err != nil {
+		panic(err)
+	}
+	// defer db.Close()
+	// test connection
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+
+	createUsers, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS users (
+			id INTEGER PRIMARY KEY,
+			email TEXT,
+			username TEXT,
+			password TEXT,
+			avatar INTEGER,
+			session TEXT
+			)
+		`)
+	createUsers.Exec()
+
+	createCategories, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS categories (
+			id INTEGER PRIMARY KEY, 
+			name TEXT, 
+			color TEXT
+		)
+	`)
+	createCategories.Exec()
+
+	createPosts, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS posts (
+			id INTEGER PRIMARY KEY, 
+			title TEXT, 
+			content TEXT, 
+			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+			author_id INTEGER NOT NULL, 
+			category_id INTEGER NOT NULL, 
+			FOREIGN KEY(author_id) REFERENCES users(id), 
+			FOREIGN KEY(category_id) REFERENCES categories(id)
+		)
+	`)
+	createPosts.Exec()
+
+	createComments, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS comments (
+			text TEXT, 
+			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+			author_id INTEGER NOT NULL, 
+			post_id INTEGER NOT NULL, 
+			FOREIGN KEY(author_id) REFERENCES users(id), 
+			FOREIGN KEY(post_id) REFERENCES posts(id)
+		)
+	`)
+	createComments.Exec()
+
+	createLikes, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS likes (
+			user_id INTEGER NOT NULL,
+			post_id INTEGER NOT NULL,
+			FOREIGN KEY(user_id) REFERENCES users(id), 
+			FOREIGN KEY(post_id) REFERENCES posts(id)
+		)
+	`)
+	createLikes.Exec()
+
+	createDislikes, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS dislikes (
+			user_id INTEGER NOT NULL,
+			post_id INTEGER NOT NULL,
+			FOREIGN KEY(user_id) REFERENCES users(id), 
+			FOREIGN KEY(post_id) REFERENCES posts(id)
+		)
+	`)
+	createDislikes.Exec()
+
+	// var categories = make(map[string]string)
+	// categories["Technology"] = "red"
+	// categories["Design"] = "blue"
+	// categories["Environment"] = "green"
+
+	// for category, color := range categories {
+	// 	_, err = db.Exec(`INSERT INTO categories(name, color) VALUES(?, ?)`, category, color)
+	// }
+
+}
 
 func getCategories(w http.ResponseWriter) []Category {
 	categoryRows, err := db.Query("SELECT * FROM categories")
@@ -80,4 +174,92 @@ func getComments(w http.ResponseWriter, postID int) []Comment {
 		checkInternalServerError(err, w)
 	}
 	return comments
+}
+
+func getLikes(w http.ResponseWriter, postID int) int {
+
+	likeRows, err := db.Query("SELECT * FROM likes WHERE post_id=?", postID)
+	// likeRows, err := db.Query("SELECT * FROM likes")
+
+	checkInternalServerError(err, w)
+	count := 0
+	for likeRows.Next() {
+		count++
+	}
+
+	return count
+}
+
+func getDislikes(w http.ResponseWriter, postID int) int {
+
+	dislikeRows, err := db.Query("SELECT * FROM dislikes WHERE post_id=?", postID)
+
+	checkInternalServerError(err, w)
+	count := 0
+	for dislikeRows.Next() {
+		count++
+	}
+
+	return count
+}
+
+func getUserLike(w http.ResponseWriter, postID int, userID int) bool {
+	likeRows, err := db.Query("SELECT * FROM likes WHERE post_id=? AND user_id=?", postID, userID)
+
+	if err != nil {
+		return false
+	}
+	count := 0
+	for likeRows.Next() {
+		count++
+	}
+	if count >= 1 {
+		return true
+	}
+	return false
+}
+
+func getUserDislike(w http.ResponseWriter, postID int, userID int) bool {
+	likeRows, err := db.Query("SELECT * FROM dislikes WHERE post_id=? AND user_id=?", postID, userID)
+
+	if err != nil {
+		return false
+	}
+	count := 0
+	for likeRows.Next() {
+		count++
+	}
+	if count >= 1 {
+		return true
+	}
+	return false
+}
+
+func addLike(w http.ResponseWriter, postID int, userID int) {
+	// Add like
+	_, err = db.Exec(`
+		INSERT OR IGNORE INTO likes (user_id, post_id) VALUES (?, ?)
+	`, userID, postID)
+	checkInternalServerError(err, w)
+
+	// Remove dislike
+	_, err = db.Exec(`
+		DELETE from dislikes WHERE user_id=? AND post_id=?
+	`, userID, postID)
+	checkInternalServerError(err, w)
+}
+
+func addDislike(w http.ResponseWriter, postID int, userID int) {
+
+	// Add dislike
+	_, err = db.Exec(`
+		INSERT OR IGNORE INTO dislikes (user_id, post_id) VALUES (?, ?)
+	`, userID, postID)
+	checkInternalServerError(err, w)
+
+	// Remove like
+	_, err = db.Exec(`
+		DELETE from likes WHERE user_id=? AND post_id=?
+	`, userID, postID)
+	checkInternalServerError(err, w)
 }

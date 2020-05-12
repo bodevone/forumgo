@@ -28,8 +28,12 @@ type IndexData struct {
 
 // PostData stores data for post page
 type PostData struct {
-	LoggedIn bool
-	UserData User
-	CurrPost Post
-	Comments []Comment
+	LoggedIn     bool
+	UserData     User
+	CurrPost     Post
+	UserLiked    bool
+	UserDisliked bool
+	Likes        int
+	Dislikes     int
+	Comments     []Comment
 }
