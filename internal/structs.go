@@ -15,6 +15,7 @@ type UserData struct {
 	ProfileUser User
 	ProfData    ProfileData
 	ProfPosts   []Post
+	LikedPosts  []Post
 }
 
 // IndexData stores data for index page

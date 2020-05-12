@@ -5,3 +5,4 @@ RUN go get -u golang.org/x/crypto/bcrypt
 WORKDIR /go/src/forum
 COPY . .
 RUN go build -o main .
+CMD ["/go/src/forum/main"]

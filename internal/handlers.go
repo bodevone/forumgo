@@ -220,11 +220,15 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	posts := getPostsOfUser(w, userID)
 	posts = formatPosts(w, posts)
 
+	postsLiked := getLikedPostsOfUser(w, userID)
+	postsLiked = formatPosts(w, postsLiked)
+
 	var userData UserData
 	userData.LoggedIn = isLoggedIn
 	userData.ProfData = profileData
 	userData.ProfileUser = user
 	userData.ProfPosts = posts
+	userData.LikedPosts = postsLiked
 
 	t, err := template.New("user.html").ParseFiles("templates/user.html")
 	checkInternalServerError(err, w)

@@ -150,6 +150,30 @@ func getPostsOfUser(w http.ResponseWriter, user int) []Post {
 	return posts
 }
 
+func getLikedPostsOfUser(w http.ResponseWriter, user int) []Post {
+	likeRows, err := db.Query("SELECT post_id FROM likes WHERE user_id=?", user)
+	checkInternalServerError(err, w)
+
+	var posts []Post
+	var post Post
+
+	var postID int64
+
+	for likeRows.Next() {
+		err = likeRows.Scan(&postID)
+		checkInternalServerError(err, w)
+
+		err = db.QueryRow("SELECT * FROM posts WHERE id=?",
+			postID).Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author, &post.Category)
+		checkInternalServerError(err, w)
+
+		posts = append(posts, post)
+	}
+
+	return posts
+
+}
+
 func getCategoryName(w http.ResponseWriter, categoryID int) string {
 	categoryName := ""
 	err = db.QueryRow("SELECT name FROM categories WHERE id=?",
