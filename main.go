@@ -1,8 +1,8 @@
 package main
 
 import (
-	"log"
 	"net/http"
+	"os"
 
 	internal "forum/internal"
 
@@ -13,12 +13,11 @@ func main() {
 	internal.InitDb()
 
 	//os.Setenv("PORT", "8898")
-	// port := os.Getenv("PORT")
-	port := "8080"
+	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("$PORT must be set")
+		port = "8080"
 	}
-	// route
+	// routes
 	http.HandleFunc("/", internal.IndexHandler)
 	http.HandleFunc("/login", internal.LoginHandler)
 	http.HandleFunc("/register", internal.RegisterHandler)
