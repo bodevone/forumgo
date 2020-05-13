@@ -6,7 +6,7 @@
 
 Forum written on plain Golang. This project was created as part of [alem 01-edu program](https://alem.school/). Project desription can be found [here](https://github.com/01-edu/public/blob/master/subjects/forum/forum.en.md).
 
-### [Visit the site](https://forumgo.herokuapp.com/
+### [Visit the site](https://forumgo.herokuapp.com/)
 
 ## Technologies
 * Docker
