@@ -40,11 +40,15 @@ type Category struct {
 
 // Comment displays comment of user in post
 type Comment struct {
-	Text       string `json:"name"`
-	Timestamp  string `json:"timestamp"`
-	Author     int64  `json:"autor"`
-	AuthorName string `json:"author_name"`
-	Post       int64  `json:"post"`
+	ID           int64  `json:"id"`
+	Text         string `json:"name"`
+	Timestamp    string `json:"timestamp"`
+	Author       int64  `json:"autor"`
+	AuthorName   string `json:"author_name"`
+	Post         int64  `json:"post"`
+	Likes        string `json:"likes"`
+	UserLiked    bool   `json:"userliked"`
+	UserDisliked bool   `json:"userdisliked"`
 }
 
 // Like on post from user
@@ -57,4 +61,10 @@ type Like struct {
 type Dislike struct {
 	UserID int64 `json:"userid"`
 	PostID int64 `json:"postid"`
+}
+
+// CommentLike shows likes on comment
+type CommentLike struct {
+	UserID    int64 `json:"userid"`
+	CommentID int64 `json:"commentid"`
 }

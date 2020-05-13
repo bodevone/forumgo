@@ -85,12 +85,42 @@
 
             <div>
                 <h1 class="h3 mb-3 text-top">Comments</h1>
-                <div class="container"></div>
                     {{range $index, $comment := .Comments}}
-                    <div class="comment">
-                        <p class="author">{{$comment.AuthorName}}</p>
-                        <p class="time">{{$comment.Timestamp}}</p>
-                        <p>{{$comment.Text}}</p>
+                    <div class="container one-comment">
+                        <div class="row">
+                            <div class="col-sm-2 likes-dislikes">
+                                {{if $comment.UserLiked}}
+                                <div class="one-png liked">
+                                    <img class="png like-comment-btn"  src="/statics/images/like.png" alt="Like button" comment="{{$comment.ID}}">                                
+                                </div>
+                                {{else}}
+                                <div class="one-png">
+                                    <img class="png like-comment-btn"  src="/statics/images/like.png" alt="Like button" comment="{{$comment.ID}}">                                
+                                </div>
+                                {{end}}
+
+                                {{$comment.Likes}}
+
+                                {{if $comment.UserDisliked}}
+                                <div class="one-png disliked">
+                                    <img class="png dislike-comment-btn" src="/statics/images/dislike.png" alt="Like button" comment="{{$comment.ID}}">                                
+                                </div>
+                                {{else}}
+                                <div class="one-png">
+                                    <img class="png dislike-comment-btn" src="/statics/images/dislike.png" alt="Like button" comment="{{$comment.ID}}">                                
+                                </div>
+                                {{end}}
+                            </div>
+                            <div class="col-sm-10 comment">
+                                <p class="author">
+                                    <a href="/user/{{$comment.Author}}" style="text-decoration: none;">
+                                        {{$comment.AuthorName}}
+                                    </a>
+                                </p>
+                                <p class="time">{{$comment.Timestamp}}</p>
+                                <p>{{$comment.Text}}</p>
+                            </div>
+                        </div>
                     </div>
                     {{end}}
             </div>
@@ -190,6 +220,72 @@
         form.submit();
     }
 
+
+    var likeCommentButtons = document.querySelectorAll('.like-comment-btn');
+    var dislikeCommentButton = document.querySelectorAll('.dislike-comment-btn');
+
+    if (likeCommentButtons) {
+        for (i=0; i<likeCommentButtons.length; i++) {
+            likeCommentButtons[i].addEventListener('click', likeComment, false)
+        }
+    }
+
+    if (dislikeCommentButton) {
+        for (i=0; i<dislikeCommentButton.length; i++) {
+            dislikeCommentButton[i].addEventListener('click', dislikeComment, false)
+        }
+    }
+
+    function likeComment(e) {
+        const commentId = e.currentTarget.getAttribute('comment')
+
+        const method='post';
+        const form = document.createElement('form');
+        form.method = method;
+        form.action = '/post/' + postId;
+
+        const hiddenField1 = document.createElement('input');
+        hiddenField1.type = 'hidden';
+        hiddenField1.name = 'likedislikecomment';
+        hiddenField1.value = 'like';
+
+        const hiddenField2 = document.createElement('input');
+        hiddenField2.type = 'hidden';
+        hiddenField2.name = 'commentid';
+        hiddenField2.value = commentId;
+
+        form.appendChild(hiddenField1);
+        form.appendChild(hiddenField2);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+
+    function dislikeComment(e) {
+        const commentId = e.currentTarget.getAttribute('comment')
+
+        const method='post';
+        const form = document.createElement('form');
+        form.method = method;
+        form.action = '/post/' + postId;
+
+        const hiddenField1 = document.createElement('input');
+        hiddenField1.type = 'hidden';
+        hiddenField1.name = 'likedislikecomment';
+        hiddenField1.value = 'dislike';
+
+        const hiddenField2 = document.createElement('input');
+        hiddenField2.type = 'hidden';
+        hiddenField2.name = 'commentid';
+        hiddenField2.value = commentId;
+
+        form.appendChild(hiddenField1);
+        form.appendChild(hiddenField2);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
 </script>
 
 </body>

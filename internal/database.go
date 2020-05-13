@@ -3,6 +3,7 @@ package internal
 import (
 	"database/sql"
 	"net/http"
+	"strconv"
 )
 
 // InitDb starts database
@@ -55,6 +56,7 @@ func InitDb() {
 
 	createComments, _ := db.Prepare(`
 		CREATE TABLE IF NOT EXISTS comments (
+			id INTEGER PRIMARY KEY,
 			text TEXT, 
 			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
 			author_id INTEGER NOT NULL, 
@@ -86,6 +88,28 @@ func InitDb() {
 		)
 	`)
 	createDislikes.Exec()
+
+	createCommentLikes, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS commentlikes (
+			user_id INTEGER NOT NULL,
+			comment_id INTEGER NOT NULL,
+			UNIQUE(user_id, comment_id),
+			FOREIGN KEY(user_id) REFERENCES users(id), 
+			FOREIGN KEY(comment_id) REFERENCES comments(id)
+		)
+	`)
+	createCommentLikes.Exec()
+
+	createCommentDislikes, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS commentdislikes (
+			user_id INTEGER NOT NULL,
+			comment_id INTEGER NOT NULL,
+			UNIQUE(user_id, comment_id),
+			FOREIGN KEY(user_id) REFERENCES users(id), 
+			FOREIGN KEY(comment_id) REFERENCES comments(id)
+		)
+	`)
+	createCommentDislikes.Exec()
 
 	// var categories = make(map[string]string)
 	// categories["Technology"] = "red"
@@ -195,10 +219,79 @@ func getComments(w http.ResponseWriter, postID int) []Comment {
 	var comments []Comment
 	var comment Comment
 	for commentRows.Next() {
-		err = commentRows.Scan(&comment.Text, &comment.Timestamp, &comment.Author, &comment.Post)
+		err = commentRows.Scan(&comment.ID, &comment.Text, &comment.Timestamp, &comment.Author, &comment.Post)
 		comments = append(comments, comment)
 		checkInternalServerError(err, w)
 	}
+	return comments
+}
+
+func getCommentsLikes(w http.ResponseWriter, comments []Comment) []Comment {
+	for i, comment := range comments {
+		likes := 0
+		commentLikeRows, err := db.Query("SELECT * FROM commentlikes WHERE comment_id=?", comment.ID)
+		checkInternalServerError(err, w)
+		for commentLikeRows.Next() {
+			likes++
+		}
+
+		commentDislikesRows, err := db.Query("SELECT * FROM commentdislikes WHERE comment_id=?", comment.ID)
+		checkInternalServerError(err, w)
+		for commentDislikesRows.Next() {
+			likes--
+		}
+
+		likesString := ""
+
+		if likes > 0 {
+			likesString = "+" + strconv.Itoa(likes)
+		} else if likes < 0 {
+			likesString = strconv.Itoa(likes)
+		} else {
+			likesString = "0"
+		}
+
+		comments[i].Likes = likesString
+	}
+
+	return comments
+}
+
+func getUserCommentsLikes(w http.ResponseWriter, comments []Comment, userID int) []Comment {
+	for i, comment := range comments {
+		commentLiked := false
+		userCommentLikeRows, _ := db.Query("SELECT * FROM commentlikes WHERE comment_id=? AND user_id=?", comment.ID, userID)
+
+		count := 0
+		for userCommentLikeRows.Next() {
+			count++
+		}
+		if count >= 1 {
+			commentLiked = true
+		}
+
+		comments[i].UserLiked = commentLiked
+	}
+
+	return comments
+}
+
+func getUserCommentsDislikes(w http.ResponseWriter, comments []Comment, userID int) []Comment {
+	for i, comment := range comments {
+		commentDisliked := false
+		userCommentDislikeRows, _ := db.Query("SELECT * FROM commentdislikes WHERE comment_id=? AND user_id=?", comment.ID, userID)
+
+		count := 0
+		for userCommentDislikeRows.Next() {
+			count++
+		}
+		if count >= 1 {
+			commentDisliked = true
+		}
+
+		comments[i].UserDisliked = commentDisliked
+	}
+
 	return comments
 }
 
@@ -323,5 +416,69 @@ func addDislike(w http.ResponseWriter, postID int, userID int) {
 	_, err = db.Exec(`
 		DELETE from likes WHERE user_id=? AND post_id=?
 	`, userID, postID)
+	checkInternalServerError(err, w)
+}
+
+func addLikeToComment(w http.ResponseWriter, commentID int, userID int) {
+	// Add like
+	commentLikeRows, err := db.Query("SELECT * FROM commentlikes WHERE user_id=? AND comment_id=?", userID, commentID)
+
+	if err != nil {
+		checkInternalServerError(err, w)
+	}
+	count := 0
+	for commentLikeRows.Next() {
+		count++
+	}
+	if count >= 1 {
+		// Remove like if exists
+		_, err = db.Exec(`
+			DELETE from commentlikes WHERE user_id=? AND comment_id=?
+		`, userID, commentID)
+		checkInternalServerError(err, w)
+	} else {
+		// Add like if not exists
+		_, err = db.Exec(`
+			INSERT OR IGNORE INTO commentlikes (user_id, comment_id) VALUES (?, ?)
+		`, userID, commentID)
+		checkInternalServerError(err, w)
+	}
+
+	// Remove dislike
+	_, err = db.Exec(`
+		DELETE from commentdislikes WHERE user_id=? AND comment_id=?
+	`, userID, commentID)
+	checkInternalServerError(err, w)
+}
+
+func addDislikeToComment(w http.ResponseWriter, commentID int, userID int) {
+	// Add dislike
+	commentLikeRows, err := db.Query("SELECT * FROM commentdislikes WHERE user_id=? AND comment_id=?", userID, commentID)
+
+	if err != nil {
+		checkInternalServerError(err, w)
+	}
+	count := 0
+	for commentLikeRows.Next() {
+		count++
+	}
+	if count >= 1 {
+		// Remove dislike if exists
+		_, err = db.Exec(`
+			DELETE from commentdislikes WHERE user_id=? AND comment_id=?
+		`, userID, commentID)
+		checkInternalServerError(err, w)
+	} else {
+		// Add dislike if not exists
+		_, err = db.Exec(`
+			INSERT OR IGNORE INTO commentdislikes (user_id, comment_id) VALUES (?, ?)
+		`, userID, commentID)
+		checkInternalServerError(err, w)
+	}
+
+	// Remove like
+	_, err = db.Exec(`
+		DELETE from commentlikes WHERE user_id=? AND comment_id=?
+	`, userID, commentID)
 	checkInternalServerError(err, w)
 }

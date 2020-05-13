@@ -322,6 +322,9 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 		comments := getComments(w, postID)
 		comments = formatComments(w, comments)
+		comments = getCommentsLikes(w, comments)
+		comments = getUserCommentsLikes(w, comments, int(user.ID))
+		comments = getUserCommentsDislikes(w, comments, int(user.ID))
 
 		var postData PostData
 
@@ -359,14 +362,31 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 	likedislike := r.FormValue("likedislike")
 
+	if likedislike != "" {
+		if isLoggedIn {
+			if likedislike == "like" {
+				addLike(w, postID, int(user.ID))
+			} else if likedislike == "dislike" {
+				addDislike(w, postID, int(user.ID))
+			}
+			http.Redirect(w, r, "/post/"+postString, 301)
+
+		} else {
+			http.Redirect(w, r, "/login", 301)
+		}
+	}
+
+	likedislikecomment := r.FormValue("likedislikecomment")
+
+	commentID, err := strconv.Atoi(r.FormValue("commentid"))
+
 	if isLoggedIn {
-		if likedislike == "like" {
-			addLike(w, postID, int(user.ID))
-		} else if likedislike == "dislike" {
-			addDislike(w, postID, int(user.ID))
+		if likedislikecomment == "like" {
+			addLikeToComment(w, commentID, int(user.ID))
+		} else if likedislikecomment == "dislike" {
+			addDislikeToComment(w, commentID, int(user.ID))
 		}
 		http.Redirect(w, r, "/post/"+postString, 301)
-
 	} else {
 		http.Redirect(w, r, "/login", 301)
 	}
