@@ -280,19 +280,9 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 	parameters := strings.Split(r.URL.Path, "/")
 	postString := ""
-	liked := false
-	disliked := false
 
 	if len(parameters) == 3 && parameters[2] != "" {
 		postString = parameters[2]
-	} else if len(parameters) == 4 && parameters[2] != "" && (parameters[3] == "like" || parameters[3] == "dislike") {
-		postString = parameters[2]
-		if parameters[3] == "like" {
-			liked = true
-		}
-		if parameters[3] == "dislike" {
-			disliked = true
-		}
 	} else {
 		http.ServeFile(w, r, "templates/error.html")
 		return
@@ -315,52 +305,35 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	isLoggedIn, user := checkCookie(w, r)
-
-	if r.Method != "POST" && (liked || disliked) {
-		if isLoggedIn {
-
-			if liked {
-				addLike(w, postID, int(user.ID))
-			}
-			if disliked {
-				addDislike(w, postID, int(user.ID))
-			}
-
-			http.Redirect(w, r, "/post/"+postString, 301)
-
-		} else {
-			http.Redirect(w, r, "/login", 301)
-		}
-	}
-
-	likesCount := getLikes(w, postID)
-	dislikesCount := getDislikes(w, postID)
-
-	userLiked := false
-	userDisliked := false
-
-	if isLoggedIn {
-		userLiked = getUserLike(w, postID, int(user.ID))
-		userDisliked = getUserDislike(w, postID, int(user.ID))
-	}
-
-	post := formatPost(w, selectedPost)
-
-	comments := getComments(w, postID)
-	comments = formatComments(w, comments)
-
-	var postData PostData
-
-	postData.CurrPost = post
-	postData.LoggedIn = isLoggedIn
-	postData.UserData = user
-	postData.Comments = comments
-	postData.Likes = likesCount
-	postData.Dislikes = dislikesCount
-	postData.UserLiked = userLiked
-	postData.UserDisliked = userDisliked
-
 	if r.Method != "POST" {
+
+		likesCount := getLikes(w, postID)
+		dislikesCount := getDislikes(w, postID)
+
+		userLiked := false
+		userDisliked := false
+
+		if isLoggedIn {
+			userLiked = getUserLike(w, postID, int(user.ID))
+			userDisliked = getUserDislike(w, postID, int(user.ID))
+		}
+
+		post := formatPost(w, selectedPost)
+
+		comments := getComments(w, postID)
+		comments = formatComments(w, comments)
+
+		var postData PostData
+
+		postData.CurrPost = post
+		postData.LoggedIn = isLoggedIn
+		postData.UserData = user
+		postData.Comments = comments
+		postData.Likes = likesCount
+		postData.Dislikes = dislikesCount
+		postData.UserLiked = userLiked
+		postData.UserDisliked = userDisliked
+
 		t, err := template.New("post.html").ParseFiles("templates/post.html")
 		checkInternalServerError(err, w)
 		err = t.Execute(w, postData)
@@ -372,12 +345,30 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 
 	if comment != "" {
 
-		_, err = db.Exec(`INSERT INTO comments(text, author_id, post_id) VALUES(?, ?, ?)`,
-			comment, user.ID, postID)
+		if isLoggedIn {
+			_, err = db.Exec(`INSERT INTO comments(text, author_id, post_id) VALUES(?, ?, ?)`,
+				comment, user.ID, postID)
 
-		checkInternalServerError(err, w)
+			checkInternalServerError(err, w)
+			http.Redirect(w, r, "/post/"+postString, 301)
+		} else {
+			http.Redirect(w, r, "/login", 301)
+		}
+
+	}
+
+	likedislike := r.FormValue("likedislike")
+
+	if isLoggedIn {
+		if likedislike == "like" {
+			addLike(w, postID, int(user.ID))
+		} else if likedislike == "dislike" {
+			addDislike(w, postID, int(user.ID))
+		}
 		http.Redirect(w, r, "/post/"+postString, 301)
 
+	} else {
+		http.Redirect(w, r, "/login", 301)
 	}
 
 }

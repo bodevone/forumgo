@@ -54,33 +54,25 @@
                     <p class="blog-post-likes">
                         {{if .UserLiked}}
                         <div class="one-png liked">
-                            <a href="/post/{{.CurrPost.ID}}/like">
-                                <img class="png" src="/statics/images/like.png" alt="Like button">
-                                {{.Likes}}
-                            </a>
+                            <img class="png" id ="like-click" src="/statics/images/like.png" alt="Like button">
+                            {{.Likes}}
                         </div>
                         {{else}}
                         <div class="one-png">
-                            <a href="/post/{{.CurrPost.ID}}/like">
-                                <img class="png" src="/statics/images/like.png" alt="Like button">
-                                {{.Likes}}
-                            </a>
+                            <img class="png" id ="like-click" src="/statics/images/like.png" alt="Like button">                                
+                            {{.Likes}}
                         </div>
                         {{end}}
 
                         {{if .UserDisliked}}
                         <div class="one-png disliked">
-                            <a href="/post/{{.CurrPost.ID}}/dislike">
-                                <img class="png" src="/statics/images/dislike.png" alt="Dislike button">
-                                {{.Dislikes}}
-                            </a>
+                            <img class="png" id ="dislike-click" src="/statics/images/dislike.png" alt="Like button">                                
+                            {{.Dislikes}}
                         </div>
                         {{else}}
                         <div class="one-png">
-                            <a href="/post/{{.CurrPost.ID}}/dislike">
-                                <img class="png" src="/statics/images/dislike.png" alt="Dislike button">
-                                {{.Dislikes}}
-                            </a>
+                            <img class="png" id ="dislike-click" src="/statics/images/dislike.png" alt="Like button">                                
+                            {{.Dislikes}}
                         </div>
                         {{end}}
                     </p>
@@ -125,6 +117,8 @@
 
     </div>
 
+    <div id="post-id" style="display: none;">{{.CurrPost.ID}}</div>
+
 <footer class="blog-footer">
     <p>Built by bodevone © 2020</p>
 </footer>
@@ -143,7 +137,59 @@
                 return false;
             }
         }
+    }
 
+    const postIdEl = document.getElementById('post-id');
+    const postId = postIdEl.textContent;
+
+    var likeButton = document.getElementById('like-click');
+    var dislikeButton = document.getElementById('dislike-click');
+
+    likeButton.addEventListener('click', likePost, false)
+    dislikeButton.addEventListener('click', dislikePost, false)
+
+    console.log(postId)
+
+    function likePost() {
+        // The rest of this code assumes you are not using a library.
+        // It can be made less wordy if you use one.
+
+        const method='post';
+        const form = document.createElement('form');
+        form.method = method;
+        form.action = '/post/' + postId;
+
+
+        const hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = 'likedislike';
+        hiddenField.value = 'like';
+
+        form.appendChild(hiddenField);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+
+    function dislikePost() {
+        // The rest of this code assumes you are not using a library.
+        // It can be made less wordy if you use one.
+
+        const method='post';
+        const form = document.createElement('form');
+        form.method = method;
+        form.action = '/post/' + postId;
+
+        const hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = 'likedislike';
+        hiddenField.value = 'dislike';
+
+        form.appendChild(hiddenField);
+
+        document.body.appendChild(form);
+        form.submit();
     }
 
 </script>

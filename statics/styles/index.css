@@ -187,6 +187,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .png {
+    cursor: pointer;
     height: auto; 
     width: auto; 
     max-width: 20px; 
