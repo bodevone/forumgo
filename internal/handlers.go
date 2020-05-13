@@ -140,7 +140,13 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 // LogoutHandler handles logout
 func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	deleteCookie(w)
+	isLoggedIn, _ := checkCookie(w, r)
+
+	if isLoggedIn {
+		deleteCookie(w)
+	} else {
+		http.Redirect(w, r, "/login", 301)
+	}
 	http.Redirect(w, r, "/", 301)
 }
 
