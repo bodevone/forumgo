@@ -263,10 +263,28 @@ func getUserDislike(w http.ResponseWriter, postID int, userID int) bool {
 
 func addLike(w http.ResponseWriter, postID int, userID int) {
 	// Add like
-	_, err = db.Exec(`
-		INSERT OR IGNORE INTO likes (user_id, post_id) VALUES (?, ?)
-	`, userID, postID)
-	checkInternalServerError(err, w)
+	likeRows, err := db.Query("SELECT * FROM likes WHERE post_id=? AND user_id=?", postID, userID)
+
+	if err != nil {
+		checkInternalServerError(err, w)
+	}
+	count := 0
+	for likeRows.Next() {
+		count++
+	}
+	if count >= 1 {
+		// Remove like if exists
+		_, err = db.Exec(`
+			DELETE from likes WHERE user_id=? AND post_id=?
+		`, userID, postID)
+		checkInternalServerError(err, w)
+	} else {
+		// Ad like if not exists
+		_, err = db.Exec(`
+			INSERT OR IGNORE INTO likes (user_id, post_id) VALUES (?, ?)
+		`, userID, postID)
+		checkInternalServerError(err, w)
+	}
 
 	// Remove dislike
 	_, err = db.Exec(`
@@ -278,10 +296,28 @@ func addLike(w http.ResponseWriter, postID int, userID int) {
 func addDislike(w http.ResponseWriter, postID int, userID int) {
 
 	// Add dislike
-	_, err = db.Exec(`
-		INSERT OR IGNORE INTO dislikes (user_id, post_id) VALUES (?, ?)
-	`, userID, postID)
-	checkInternalServerError(err, w)
+	dislikeRows, err := db.Query("SELECT * FROM dislikes WHERE post_id=? AND user_id=?", postID, userID)
+
+	if err != nil {
+		checkInternalServerError(err, w)
+	}
+	count := 0
+	for dislikeRows.Next() {
+		count++
+	}
+	if count >= 1 {
+		// Remove dislike if exists
+		_, err = db.Exec(`
+			DELETE from dislikes WHERE user_id=? AND post_id=?
+		`, userID, postID)
+		checkInternalServerError(err, w)
+	} else {
+		// Add dislike if not exists
+		_, err = db.Exec(`
+			INSERT OR IGNORE INTO dislikes (user_id, post_id) VALUES (?, ?)
+		`, userID, postID)
+		checkInternalServerError(err, w)
+	}
 
 	// Remove like
 	_, err = db.Exec(`
