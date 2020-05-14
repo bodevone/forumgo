@@ -1,5 +1,5 @@
 language: generic
-sudo: required
+dist: xenial
 services:
 - docker
 script:
@@ -7,5 +7,6 @@ script:
 - docker run -d -p 3000:8080 forum
 deploy:
   provider: heroku
+  strategy: api
   api_key:
     secure: RJO+E2AjagYejdefuFbqwkRxuKkwKyA96GR2pCY5afe31SDxJZRX7RBH3CSktNzb7pkpIZMQrV7xMimDVS82BHclJdARSt1ByTqdEmSLMdvMx2g21EJUsEc+ENaKMOGGJMV3s1od9PwN1ibJJ5u4M1sgIveKCu/TNp++Llw9K8DuaLcH+yDfgICvjFQtwOiiREwLACOqURF/wB+GYQYNeLcQvc0IpI/CJRF50+OvuA1cqqnaZn7XZyJ3+G8MMM2XhU/FDLQ2jStRbvNm20dZEixGUAryVpb91AjIpHM/8PTPimzvBvsewIHdwYdhEWBrX3JEc2GRaiBzHr1AFa4oQA6+wwUdcJcEngbrxRB9P3oe/kmmkbQs9BIIy0N/9JCyS75bzdSARPKj74SHzEXHDa1t6/+FKjNadIhr5MpRLs2AhLsKKdxYyQY9rzwrWw3DUEjgbEoVwufAzGJ6zDJrk+2lbpKs42khL3tK9Ea65UROATVj2rwApzcNE6xZbC2dy/uGoSwCCAaxrtnSzvNBYmDlbn34MMAbMxmDJANeH2NiWUgGYYgReQjRyuLBVAJCT3kyAZkjqX2AxpPpHEqjqnxR2ey/W09YqEZusBnTGOmYfTZhd/2Xj895QtgFwgadVo6mU7/8S27ejvOvGg8NaEBFfYRgDA8Eq8fAVTaPF8w=

@@ -69,13 +69,23 @@ func createCookie(w http.ResponseWriter, email string) {
 
 }
 
-func deleteCookie(w http.ResponseWriter) {
+func deleteCookie(w http.ResponseWriter, userID int) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:   "session_token",
 		Value:  "",
 		MaxAge: -1,
 	})
+
+	deleteSession, err := db.Prepare(`
+		UPDATE users SET session=?
+		WHERE id=?
+	`)
+	checkInternalServerError(err, w)
+	res, err := deleteSession.Exec("logout", userID)
+	checkInternalServerError(err, w)
+	_, err = res.RowsAffected()
+	checkInternalServerError(err, w)
 }
 
 func formatPosts(w http.ResponseWriter, posts []Post) []Post {
