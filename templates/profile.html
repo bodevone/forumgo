@@ -57,7 +57,7 @@
 
                 <a class="btn btn-sm btn-outline-success" href="/add-post">Add New Post</a>
                 <a class="btn btn-sm btn-outline-primary" href="/user/{{.ProfileUser.ID}}">Public Profile</a>
-                <a class="btn btn-sm btn-outline-danger" href="/logout">Logout</a>
+                <button class="btn btn-sm btn-outline-danger" id="logout">Logout</button>
             </div>
             
             <hr/>
@@ -91,6 +91,34 @@
 <footer class="blog-footer">
     <p>Built by bodevone © 2020</p>
 </footer>
+
+<script>
+
+    const logoutBtn = document.getElementById('logout');
+
+    logoutBtn.addEventListener('click', logoutAction, false)
+
+    function logoutAction(e) {
+
+        console.log("HERE")
+
+        const method='post';
+        const form = document.createElement('form');
+        form.method = method;
+        form.action = '/profile';
+
+        const hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = 'logout';
+        hiddenField.value = 'logout';
+
+        form.appendChild(hiddenField);
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+</script>
 
 
 </body>

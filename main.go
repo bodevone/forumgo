@@ -21,7 +21,7 @@ func main() {
 	http.HandleFunc("/", internal.IndexHandler)
 	http.HandleFunc("/login", internal.LoginHandler)
 	http.HandleFunc("/register", internal.RegisterHandler)
-	http.HandleFunc("/logout", internal.LogoutHandler)
+	// http.HandleFunc("/logout", internal.LogoutHandler)
 	http.HandleFunc("/profile", internal.ProfileHandler)
 	http.HandleFunc("/user/", internal.UserHandler)
 	http.HandleFunc("/add-post", internal.AddPostHandler)

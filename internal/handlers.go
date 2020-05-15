@@ -2,6 +2,7 @@ package internal
 
 import (
 	"database/sql"
+	"errors"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -139,16 +140,9 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // LogoutHandler handles logout
-func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	isLoggedIn, user := checkCookie(w, r)
+// func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 
-	if isLoggedIn {
-		deleteCookie(w, int(user.ID))
-	} else {
-		http.Redirect(w, r, "/login", 301)
-	}
-	http.Redirect(w, r, "/", 301)
-}
+// }
 
 // ProfileHandler handles account info
 func ProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -157,6 +151,24 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	var profileData ProfileData
 	profileData.ProfileUser = user
+
+	if r.Method == "POST" {
+		logout := r.FormValue("logout")
+
+		if logout != "" {
+			if isLoggedIn {
+				deleteCookie(w, int(user.ID))
+			} else {
+				http.Redirect(w, r, "/login", 301)
+			}
+			http.Redirect(w, r, "/", 301)
+
+		} else {
+			errPost := errors.New("No POST request Data")
+			checkInternalServerError(errPost, w)
+		}
+
+	}
 
 	if isLoggedIn {
 
