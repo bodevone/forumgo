@@ -430,12 +430,13 @@ func CategoryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	posts, err := getPostsOfCategory(categoryID)
-	category := getCategoryName(w, categoryID)
 
 	if err != nil {
 		http.ServeFile(w, r, "templates/error.html")
 		return
 	}
+
+	category := getCategoryName(w, categoryID)
 
 	posts = formatPosts(w, posts)
 	categories := getCategories(w)
