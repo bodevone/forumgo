@@ -160,6 +160,14 @@ func getPostsOfCategory(category int) ([]Post, error) {
 	return posts, err1
 }
 
+func getCategoryName(w http.ResponseWriter, categoryID int) (string, error) {
+	categoryName := ""
+	err = db.QueryRow("SELECT name FROM categories WHERE id=?",
+		categoryID).Scan(&categoryName)
+
+	return categoryName, err
+}
+
 func getPostsOfUser(w http.ResponseWriter, user int) []Post {
 
 	postRows, err := db.Query("SELECT * FROM posts WHERE author_id=?", user)
@@ -197,16 +205,6 @@ func getLikedPostsOfUser(w http.ResponseWriter, user int) []Post {
 
 	return posts
 
-}
-
-func getCategoryName(w http.ResponseWriter, categoryID int) string {
-	categoryName := ""
-	err = db.QueryRow("SELECT name FROM categories WHERE id=?",
-		categoryID).Scan(&categoryName)
-
-	checkInternalServerError(err, w)
-
-	return categoryName
 }
 
 func getComments(w http.ResponseWriter, postID int) []Comment {

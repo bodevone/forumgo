@@ -20,7 +20,7 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	checkAllowedMethods(methods, w, r)
 
 	if r.URL.Path != "/" {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
@@ -209,14 +209,14 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	if len(parameters) == 3 && parameters[2] != "" {
 		param = parameters[2]
 	} else {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
 	userID, err := strconv.Atoi(param)
 
 	if err != nil {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
@@ -225,7 +225,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 		userID).Scan(&selectedUser.Email, &selectedUser.Username, &selectedUser.Avatar)
 
 	if err != nil {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
@@ -315,14 +315,14 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	if len(parameters) == 3 && parameters[2] != "" {
 		postString = parameters[2]
 	} else {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
 	postID, err := strconv.Atoi(postString)
 
 	if err != nil {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
@@ -331,7 +331,7 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		postID).Scan(&selectedPost.ID, &selectedPost.Title, &selectedPost.Content, &selectedPost.Timestamp, &selectedPost.Author, &selectedPost.Category)
 
 	if err != nil {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
@@ -432,25 +432,30 @@ func CategoryHandler(w http.ResponseWriter, r *http.Request) {
 	if len(parameters) == 3 && parameters[2] != "" {
 		param = parameters[2]
 	} else {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
 	categoryID, err := strconv.Atoi(param)
 
 	if err != nil {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
 	posts, err := getPostsOfCategory(categoryID)
 
 	if err != nil {
-		http.ServeFile(w, r, "templates/error.html")
+		pageNotFound(w, r)
 		return
 	}
 
-	category := getCategoryName(w, categoryID)
+	category, err := getCategoryName(w, categoryID)
+
+	if err != nil {
+		pageNotFound(w, r)
+		return
+	}
 
 	posts = formatPosts(w, posts)
 	categories := getCategories(w)
@@ -464,8 +469,6 @@ func CategoryHandler(w http.ResponseWriter, r *http.Request) {
 	templateData.LoggedIn = isLoggedIn
 	templateData.Category = category
 
-	t, err := template.New("category.html").ParseFiles("templates/category.html")
-	checkInternalServerError(err, w)
-	err = t.Execute(w, templateData)
-	checkInternalServerError(err, w)
+	t, _ := template.New("category.html").ParseFiles("templates/category.html")
+	t.Execute(w, templateData)
 }

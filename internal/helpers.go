@@ -39,6 +39,11 @@ func checkAllowedMethods(methods []string, w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func pageNotFound(w http.ResponseWriter, r *http.Request) {
+	http.NotFound(w, r)
+	// http.ServeFile(w, r, "templates/error.html")
+}
+
 func checkCookie(w http.ResponseWriter, r *http.Request) (bool, User) {
 	c, err := r.Cookie("session_token")
 
