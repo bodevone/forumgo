@@ -2,6 +2,7 @@ package internal
 
 import (
 	"database/sql"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -21,6 +22,20 @@ func checkInternalServerError(err error, w http.ResponseWriter) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+}
+
+func checkAllowedMethods(methods []string, w http.ResponseWriter, r *http.Request) {
+	allowed := false
+	for _, m := range methods {
+		if r.Method == m {
+			allowed = true
+		}
+	}
+
+	if !allowed {
+		errMethod := errors.New("Method is not Allowed")
+		http.Error(w, errMethod.Error(), http.StatusMethodNotAllowed)
 	}
 }
 
@@ -54,7 +69,7 @@ func createCookie(w http.ResponseWriter, email string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session_token",
 		Value:   sessionToken,
-		Expires: time.Now().Add(120 * time.Second),
+		Expires: time.Now().Add(2 * 60 * 60 * time.Second),
 	})
 
 	addSession, err := db.Prepare(`

@@ -12,8 +12,6 @@ func InitDb() {
 	if err != nil {
 		panic(err)
 	}
-	// defer db.Close()
-	// test connection
 	err = db.Ping()
 	if err != nil {
 		panic(err)
@@ -35,7 +33,8 @@ func InitDb() {
 		CREATE TABLE IF NOT EXISTS categories (
 			id INTEGER PRIMARY KEY, 
 			name TEXT, 
-			color TEXT
+			color TEXT,
+			UNIQUE(name)
 		)
 	`)
 	createCategories.Exec()
@@ -111,14 +110,14 @@ func InitDb() {
 	`)
 	createCommentDislikes.Exec()
 
-	// var categories = make(map[string]string)
-	// categories["Technology"] = "red"
-	// categories["Design"] = "blue"
-	// categories["Environment"] = "green"
+	var categories = make(map[string]string)
+	categories["Technology"] = "red"
+	categories["Design"] = "blue"
+	categories["Environment"] = "green"
 
-	// for category, color := range categories {
-	// 	_, err = db.Exec(`INSERT INTO categories(name, color) VALUES(?, ?)`, category, color)
-	// }
+	for category, color := range categories {
+		_, err = db.Exec(`INSERT OR IGNORE INTO categories(name, color) VALUES(?, ?)`, category, color)
+	}
 
 }
 

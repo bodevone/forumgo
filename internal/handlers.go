@@ -15,6 +15,10 @@ var params []string
 
 // IndexHandler handles index request
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
+
+	methods := []string{"GET"}
+	checkAllowedMethods(methods, w, r)
+
 	if r.URL.Path != "/" {
 		http.ServeFile(w, r, "templates/error.html")
 		return
@@ -42,6 +46,10 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 // LoginHandler handles login request
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
+
+	methods := []string{"GET", "POST"}
+	checkAllowedMethods(methods, w, r)
+
 	if r.Method != "POST" {
 		isLoggedIn, _ := checkCookie(w, r)
 		if isLoggedIn {
@@ -58,10 +66,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		errLogin = false
 		return
 	}
-	// grab user info from the submitted form
+
 	email := r.FormValue("email")
 	password := r.FormValue("psw")
-	// query database to get match username
+
 	var user User
 	err := db.QueryRow("SELECT email, password FROM users WHERE email=?",
 		email).Scan(&user.Email, &user.Password)
@@ -80,13 +88,16 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	createCookie(w, email)
 
-	// authenticated = true
 	http.Redirect(w, r, "/", 301)
 
 }
 
 // RegisterHandler handles register request
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+
+	methods := []string{"GET", "POST"}
+	checkAllowedMethods(methods, w, r)
+
 	if r.Method != "POST" {
 		isLoggedIn, _ := checkCookie(w, r)
 		if isLoggedIn {
@@ -103,7 +114,6 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// grab user info
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 	username := r.FormValue("username")
@@ -130,22 +140,17 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", 301)
 
 	} else {
-		// checkInternalServerError(err1, w)
-		// checkInternalServerError(err2, w)
-
 		errRegister = true
 		http.Redirect(w, r, "/register", 301)
 	}
 
 }
 
-// LogoutHandler handles logout
-// func LogoutHandler(w http.ResponseWriter, r *http.Request) {
-
-// }
-
 // ProfileHandler handles account info
 func ProfileHandler(w http.ResponseWriter, r *http.Request) {
+
+	methods := []string{"GET", "POST"}
+	checkAllowedMethods(methods, w, r)
 
 	isLoggedIn, user := checkCookie(w, r)
 
@@ -167,7 +172,6 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 			errPost := errors.New("No POST request Data")
 			checkInternalServerError(errPost, w)
 		}
-
 	}
 
 	if isLoggedIn {
@@ -192,11 +196,14 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, "/login", 301)
 	}
-
 }
 
 // UserHandler handles public profile of user
 func UserHandler(w http.ResponseWriter, r *http.Request) {
+
+	methods := []string{"GET"}
+	checkAllowedMethods(methods, w, r)
+
 	parameters := strings.Split(r.URL.Path, "/")
 	param := ""
 	if len(parameters) == 3 && parameters[2] != "" {
@@ -257,6 +264,10 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 
 // AddPostHandler handles new post addition
 func AddPostHandler(w http.ResponseWriter, r *http.Request) {
+
+	methods := []string{"GET", "POST"}
+	checkAllowedMethods(methods, w, r)
+
 	isLoggedIn, user := checkCookie(w, r)
 	if !isLoggedIn {
 		http.Redirect(w, r, "/login", 301)
@@ -276,10 +287,9 @@ func AddPostHandler(w http.ResponseWriter, r *http.Request) {
 		err = t.Execute(w, templateData)
 		checkInternalServerError(err, w)
 		return
-
 	}
 
-	// // grab post info
+	// grab post info
 	title := r.FormValue("title")
 	content := r.FormValue("content")
 	categoryID := r.FormValue("category")
@@ -295,6 +305,9 @@ func AddPostHandler(w http.ResponseWriter, r *http.Request) {
 
 // PostHandler handles one post iwth given id
 func PostHandler(w http.ResponseWriter, r *http.Request) {
+
+	methods := []string{"GET", "POST"}
+	checkAllowedMethods(methods, w, r)
 
 	parameters := strings.Split(r.URL.Path, "/")
 	postString := ""
@@ -365,7 +378,6 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	comment := r.FormValue("comment")
 
 	if comment != "" {
-
 		if isLoggedIn {
 			_, err = db.Exec(`INSERT INTO comments(text, author_id, post_id) VALUES(?, ?, ?)`,
 				comment, user.ID, postID)
@@ -375,7 +387,6 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			http.Redirect(w, r, "/login", 301)
 		}
-
 	}
 
 	likedislike := r.FormValue("likedislike")
@@ -408,11 +419,14 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, "/login", 301)
 	}
-
 }
 
 // CategoryHandler handles posts of given category
 func CategoryHandler(w http.ResponseWriter, r *http.Request) {
+
+	methods := []string{"GET"}
+	checkAllowedMethods(methods, w, r)
+
 	parameters := strings.Split(r.URL.Path, "/")
 	param := ""
 	if len(parameters) == 3 && parameters[2] != "" {
