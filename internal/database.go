@@ -39,6 +39,17 @@ func InitDb() {
 	`)
 	createCategories.Exec()
 
+	createPostCategories, _ := db.Prepare(`
+		CREATE TABLE IF NOT EXISTS postcategories (
+			post_id INTEGER NOT NULL,
+			category_id INTEGER NOT NULL,
+			UNIQUE(post_id, category_id),
+			FOREIGN KEY(post_id) REFERENCES posts(id), 
+			FOREIGN KEY(category_id) REFERENCES categories(id)
+		)
+	`)
+	createPostCategories.Exec()
+
 	createPosts, _ := db.Prepare(`
 		CREATE TABLE IF NOT EXISTS posts (
 			id INTEGER PRIMARY KEY, 
@@ -46,9 +57,7 @@ func InitDb() {
 			content TEXT, 
 			timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
 			author_id INTEGER NOT NULL, 
-			category_id INTEGER NOT NULL, 
-			FOREIGN KEY(author_id) REFERENCES users(id), 
-			FOREIGN KEY(category_id) REFERENCES categories(id)
+			FOREIGN KEY(author_id) REFERENCES users(id)
 		)
 	`)
 	createPosts.Exec()
@@ -118,7 +127,6 @@ func InitDb() {
 	for category, color := range categories {
 		_, err = db.Exec(`INSERT OR IGNORE INTO categories(name, color) VALUES(?, ?)`, category, color)
 	}
-
 }
 
 func getCategories(w http.ResponseWriter) []Category {
@@ -140,24 +148,36 @@ func getPosts(w http.ResponseWriter) []Post {
 	var posts []Post
 	var post Post
 	for postRows.Next() {
-		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author, &post.Category)
+		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author)
 		checkInternalServerError(err, w)
 		posts = append(posts, post)
 	}
 	return posts
 }
 
-func getPostsOfCategory(category int) ([]Post, error) {
+func getPostsOfCategory(w http.ResponseWriter, category int) ([]Post, error) {
 
-	postRows, err1 := db.Query("SELECT * FROM posts WHERE category_id=?", category)
-
+	var postID int64
 	var posts []Post
 	var post Post
-	for postRows.Next() {
-		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author, &post.Category)
+	var errFind error
+
+	postsOfCategoryRows, errFind := db.Query("SELECT post_id FROM postcategories WHERE category_id=?", category)
+	for postsOfCategoryRows.Next() {
+		err = postsOfCategoryRows.Scan(&postID)
+		checkInternalServerError(err, w)
+
+		err = db.QueryRow("SELECT * FROM posts WHERE id=?", postID).Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author)
 		posts = append(posts, post)
 	}
-	return posts, err1
+
+	// var posts []Post
+	// var post Post
+	// for postRows.Next() {
+	// 	err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author, &post.Category)
+	// 	posts = append(posts, post)
+	// }
+	return posts, errFind
 }
 
 func getCategoryName(w http.ResponseWriter, categoryID int) (string, error) {
@@ -176,7 +196,7 @@ func getPostsOfUser(w http.ResponseWriter, user int) []Post {
 	var posts []Post
 	var post Post
 	for postRows.Next() {
-		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author, &post.Category)
+		err = postRows.Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author)
 		posts = append(posts, post)
 		checkInternalServerError(err, w)
 	}
@@ -197,7 +217,7 @@ func getLikedPostsOfUser(w http.ResponseWriter, user int) []Post {
 		checkInternalServerError(err, w)
 
 		err = db.QueryRow("SELECT * FROM posts WHERE id=?",
-			postID).Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author, &post.Category)
+			postID).Scan(&post.ID, &post.Title, &post.Content, &post.Timestamp, &post.Author)
 		checkInternalServerError(err, w)
 
 		posts = append(posts, post)

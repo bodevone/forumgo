@@ -83,18 +83,15 @@
     var errorText = document.getElementById('errorText')
     registerForm.onsubmit = function() {
       if (this.elements["password"].value != this.elements['passwordAgain'].value) {
-        // alert("Password not match");
         errorText.textContent = "Passwords do not match"
         return false;
       }
       if (this.elements['username'].value.length < 3 || this.elements['password'].value.length < 5) {
-        // alert('Username and password must has at least 6 characters');
         errorText.textContent = "Username or Password is too short"
         return false;
       }
       if (this.elements['username'].value == this.elements['password'].value) {
-        // alert('Username must different password')
-        errorText.textContent = "Password must be different from password"
+        errorText.textContent = "Password must be different from Username"
         return false;
       }
     }

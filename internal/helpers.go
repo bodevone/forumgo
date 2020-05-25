@@ -130,9 +130,33 @@ func formatPosts(w http.ResponseWriter, posts []Post) []Post {
 		}
 		posts[i].Content = tempContentString
 
-		err = db.QueryRow("SELECT name FROM categories WHERE id=?",
-			post.Category).Scan(&posts[i].CategoryName)
-		checkInternalServerError(err, w)
+		var category Category
+		var categories []Category
+
+		categoriesOfPost, err := db.Query("SELECT category_id FROM postcategories WHERE post_id=?", post.ID)
+		for categoriesOfPost.Next() {
+			err = categoriesOfPost.Scan(&category.ID)
+			checkInternalServerError(err, w)
+
+			err = db.QueryRow("SELECT name FROM categories WHERE id=?",
+				category.ID).Scan(&category.Name)
+			checkInternalServerError(err, w)
+
+			categories = append(categories, category)
+
+		}
+
+		posts[i].Categories = categories
+
+		// categoryIDs := strings.Split(post.CategoryIDs, ",")
+		// for _, categoryID := range categoryIDs {
+		// 	categoryName := ""
+		// 	err = db.QueryRow("SELECT name FROM categories WHERE id=?",
+		// 		categoryID).Scan(&categoryName)
+		// 	checkInternalServerError(err, w)
+		// 	posts[i].CategoryNames = append(posts[i].CategoryNames, categoryName)
+		// }
+
 	}
 
 	return posts
@@ -146,9 +170,26 @@ func formatPost(w http.ResponseWriter, post Post) Post {
 	tempTimeArray := strings.Split(post.Timestamp, "T")
 	post.Timestamp = tempTimeArray[0]
 
-	err = db.QueryRow("SELECT name FROM categories WHERE id=?",
-		post.Category).Scan(&post.CategoryName)
-	checkInternalServerError(err, w)
+	var category Category
+	var categories []Category
+
+	categoriesOfPost, err := db.Query("SELECT category_id FROM postcategories WHERE post_id=?", post.ID)
+	for categoriesOfPost.Next() {
+		err = categoriesOfPost.Scan(&category.ID)
+		checkInternalServerError(err, w)
+
+		err = db.QueryRow("SELECT name FROM categories WHERE id=?",
+			category.ID).Scan(&category.Name)
+		checkInternalServerError(err, w)
+
+		categories = append(categories, category)
+	}
+
+	post.Categories = categories
+
+	// err = db.QueryRow("SELECT name FROM categories WHERE id=?",
+	// 	post.Category).Scan(&post.CategoryName)
+	// checkInternalServerError(err, w)
 
 	return post
 }

@@ -292,12 +292,36 @@ func AddPostHandler(w http.ResponseWriter, r *http.Request) {
 	// grab post info
 	title := r.FormValue("title")
 	content := r.FormValue("content")
-	categoryID := r.FormValue("category")
 
-	_, err = db.Exec(`INSERT INTO posts(title, content, author_id, category_id) VALUES(?, ?, ?, ?)`,
-		title, content, user.ID, categoryID)
+	categories := getCategories(w)
+	categoryIDs := []string{}
+	for _, category := range categories {
+		id := strconv.Itoa(int(category.ID))
+		if r.FormValue(id) != "" {
+			categoryIDs = append(categoryIDs, id)
+		}
+	}
 
+	ins, err := db.Exec(`INSERT INTO posts(title, content, author_id) VALUES(?, ?, ?)`,
+		title, content, user.ID)
 	checkInternalServerError(err, w)
+
+	postID, _ := ins.LastInsertId()
+
+	for _, categoryID := range categoryIDs {
+		_, err = db.Exec(`INSERT OR IGNORE INTO postcategories(post_id, category_id) VALUES(?, ?)`,
+			postID, categoryID)
+	}
+
+	// categoryIDsFormString := ""
+	// notFirst := false
+	// for _, categoryID := range categoryIDs {
+	// 	if notFirst {
+	// 		categoryIDsFormString += ","
+	// 	}
+	// 	notFirst = true
+	// 	categoryIDsFormString += categoryID
+	// }
 
 	http.Redirect(w, r, "/", 301)
 
@@ -327,8 +351,8 @@ func PostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var selectedPost Post
-	err = db.QueryRow("SELECT id, title, content, timestamp, author_id, category_id FROM posts WHERE id=?",
-		postID).Scan(&selectedPost.ID, &selectedPost.Title, &selectedPost.Content, &selectedPost.Timestamp, &selectedPost.Author, &selectedPost.Category)
+	err = db.QueryRow("SELECT id, title, content, timestamp, author_id FROM posts WHERE id=?",
+		postID).Scan(&selectedPost.ID, &selectedPost.Title, &selectedPost.Content, &selectedPost.Timestamp, &selectedPost.Author)
 
 	if err != nil {
 		pageNotFound(w, r)
@@ -443,7 +467,7 @@ func CategoryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts, err := getPostsOfCategory(categoryID)
+	posts, err := getPostsOfCategory(w, categoryID)
 
 	if err != nil {
 		pageNotFound(w, r)

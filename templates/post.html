@@ -45,7 +45,11 @@
             <div class="row">
                 <div class="blog-post col">
                     <h2 class="blog-post-title">{{.CurrPost.Title}}</h2>
-                    <a href="/category/{{.CurrPost.Category}}"><span class="badge badge-pill badge-primary">{{.CurrPost.CategoryName}}</span></a>
+                    <div class="d-inline-block">
+                        {{range $index, $category := .CurrPost.Categories}}
+                        <a href="/category/{{$category.ID}}"><span class="badge badge-pill badge-primary">{{$category.Name}}</span></a>
+                        {{end}}
+                    </div>
                     <p class="blog-post-meta">{{.CurrPost.Timestamp}} by <a href="/user/{{.CurrPost.Author}}">{{.CurrPost.AuthorName}}</a></p>
                     <p class="blog-post-likes">
                         {{if .UserLiked}}

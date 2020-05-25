@@ -21,14 +21,13 @@ type User struct {
 
 // Post stores post data
 type Post struct {
-	ID           int64  `json:"id"`
-	Title        string `json:"email"`
-	Content      string `json:"username"`
-	Timestamp    string `json:"timestamp"`
-	Author       int64  `json:"autor"`
-	AuthorName   string `json:"author_name"`
-	Category     int64  `json:"category"`
-	CategoryName string `json:"category_name"`
+	ID         int64  `json:"id"`
+	Title      string `json:"email"`
+	Content    string `json:"username"`
+	Timestamp  string `json:"timestamp"`
+	Author     int64  `json:"autor"`
+	AuthorName string `json:"author_name"`
+	Categories []Category
 }
 
 // Category displays category of post
@@ -36,6 +35,12 @@ type Category struct {
 	ID    int64  `json:"id"`
 	Name  string `json:"name"`
 	Color string `json:"color"`
+}
+
+// PostCategory categories of given post
+type PostCategory struct {
+	PostID     int64 `json:"postid"`
+	CategoryID int64 `json:"categoryid"`
 }
 
 // Comment displays comment of user in post
